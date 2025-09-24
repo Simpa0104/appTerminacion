@@ -2,7 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import Layout from "../components/layout";
 
-export default function clientes() {
+export default function Clientes() {
   return (
     <Layout title="Clientes">
       <Text>

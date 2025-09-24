@@ -2,7 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import Layout from "../components/layout";
 
-export default function facturacion() {
+export default function Facturacion() {
   return (
     <Layout title="Facturacion">
       <Text>

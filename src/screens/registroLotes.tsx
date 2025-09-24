@@ -2,7 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import Layout from "../components/layout";
 
-export default function registroLotes() {
+export default function RegistroLotes() {
   return (
     <Layout title="Registro Lotes">
       <Text>

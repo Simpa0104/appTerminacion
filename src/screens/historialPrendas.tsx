@@ -2,7 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import Layout from "../components/layout";
 
-export default function historialPrendas() {
+export default function HistorialPrendas() {
   return (
     <Layout title="Historial Prendas">
       <Text>
