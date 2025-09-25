@@ -22,7 +22,6 @@ export default function App() {
         <Tab.Screen name="Clientes" component={Clientes} />
         <Tab.Screen name="Facturación" component={Facturacion} />
       </Tab.Navigator>
-
     </NavigationContainer>
   );
 }
