@@ -2,12 +2,12 @@ import React from "react";
 import { SafeAreaView, View, Text } from "react-native";
 import styles from "../styles/layout.styles";
 
-type Props = {
+type Propiedades = {
   title: string;
   children: React.ReactNode;
 };
 
-export default function Layout({ title, children }: Props) {
+export default function Layout({ title, children }: Propiedades) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -17,3 +17,4 @@ export default function Layout({ title, children }: Props) {
     </SafeAreaView>
   );
 }
+  

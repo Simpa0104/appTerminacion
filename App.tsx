@@ -6,8 +6,8 @@ import CheckOutLotes from "./src/screens/checkOutLotes";
 import Clientes from "./src/screens/clientes";
 import Facturacion from "./src/screens/facturacion";
 import HistorialPrendas from "./src/screens/historialPrendas";
-import RegistroLotes from "./src/screens/registroLotes";
-import RegistroPrendas from "./src/screens/registroPrendas";
+import RegistroLotes from "./src/screens/registroPrendas";
+import RegistroPrendas from "./src/screens/registroLotes";
 
 const Tab = createBottomTabNavigator();
 
@@ -16,8 +16,6 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="CheckOutLotes" component={CheckOutLotes} />
-        <Tab.Screen name="RegistroLotes" component={RegistroLotes} />
-        <Tab.Screen name="RegistroPrendas" component={RegistroPrendas} />
         <Tab.Screen name="HistorialPrendas" component={HistorialPrendas} />
         <Tab.Screen name="Clientes" component={Clientes} />
         <Tab.Screen name="Facturación" component={Facturacion} />

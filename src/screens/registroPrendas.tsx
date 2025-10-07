@@ -1,26 +1,180 @@
-import React from "react";
-import { Text } from "react-native";
-import Layout from "../components/layout";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Switch,
+  ScrollView,
+} from "react-native";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import styles from "../styles/registroLotes.styles";
 
-export default function RegistroPrendas() {
+const validacionSquema = Yup.object().shape({
+  tipoPrenda: Yup.string().required("Requerido"),
+  marca: Yup.string().required("Requerido"),
+  referencia: Yup.string().required("Requerido"),
+  precioXS: Yup.number().required("Requerido"),
+  precioS: Yup.number().required("Requerido"),
+  precioM: Yup.number().required("Requerido"),
+  precioL: Yup.number().required("Requerido"),
+  precioXL: Yup.number().required("Requerido"),
+});
+
+export default function RegistroLotes() {
+  const [tieneAdiciones, setTieneAdiciones] = useState(false);
+
   return (
-    <Layout title="Registro Prendas">
-      <Text>
-        Donde habrá un formulario donde se puedan registrar prendas que se
-        guardaran en la base de datos y tendrá las siguientes preguntas: 
-        tipo de prenda 
-        Marca 
-        Referencia
-        Precio por XS/EP/ECG 
-        Precio por S/P/CH 
-        Precio por M/M/M 
-        Precio por L/G/G 
-        Precio por XL/EG/E 
-        Tendrá adiciones? Si?
-        Precio por abotonar? 
-        Cantidad de botones 
-        Se debe de pulir?
-      </Text>
-    </Layout>
+    <ScrollView style={styles.form}>
+      <Formik
+        initialValues={{
+          tipoPrenda: "",
+          marca: "",
+          referencia: "",
+          precioXS: "",
+          precioS: "",
+          precioM: "",
+          precioL: "",
+          precioXL: "",
+          precioAbotonar: "",
+          cantidadBotones: "",
+          pulir: false,
+        }}
+        validacionSquema={validacionSquema}
+        onSubmit={(values) => {
+          alert("Formulario enviado");
+          alert("Datos del formulario:\n" + JSON.stringify(values, null, 2));
+        }}
+      >
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+          setFieldValue,
+        }) => (
+          <View>
+            <Text style={styles.label}>Tipo de prenda</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Camisa, pantalón, etc."
+              onChangeText={handleChange("tipoPrenda")}
+              onBlur={handleBlur("tipoPrenda")}
+              value={values.tipoPrenda}
+            />
+            {touched.tipoPrenda && errors.tipoPrenda && (
+              <Text style={styles.error}>{errors.tipoPrenda}</Text>
+            )}
+
+            <Text style={styles.label}>Marca</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Polo, Nike, etc."
+              onChangeText={handleChange("marca")}
+              onBlur={handleBlur("marca")}
+              value={values.marca}
+            />
+            {touched.marca && errors.marca && (
+              <Text style={styles.error}>{errors.marca}</Text>
+            )}
+
+            <Text style={styles.label}>Referencia</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Referencia"
+              onChangeText={handleChange("referencia")}
+              onBlur={handleBlur("referencia")}
+              value={values.referencia}
+            />
+            {touched.referencia && errors.referencia && (
+              <Text style={styles.error}>{errors.referencia}</Text>
+            )}
+
+            <Text style={styles.label}>Precio por XS/EP/ECG</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              onChangeText={handleChange("precioXS")}
+              value={values.precioXS}
+            />
+
+            <Text style={styles.label}>Precio por S/P/CH</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              onChangeText={handleChange("precioS")}
+              value={values.precioS}
+            />
+
+            <Text style={styles.label}>Precio por M/M/M</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              onChangeText={handleChange("precioM")}
+              value={values.precioM}
+            />
+
+            <Text style={styles.label}>Precio por L/G/G</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              onChangeText={handleChange("precioL")}
+              value={values.precioL}
+            />
+
+            <Text style={styles.label}>Precio por XL/EG/E</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              onChangeText={handleChange("precioXL")}
+              value={values.precioXL}
+            />
+
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>¿Tendrá adiciones?</Text>
+              <Switch
+                value={tieneAdiciones}
+                onValueChange={setTieneAdiciones}
+              />
+            </View>
+
+            {tieneAdiciones && (
+              <>
+                <Text style={styles.label}>Precio por abotonar</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  onChangeText={handleChange("precioAbotonar")}
+                  value={values.precioAbotonar}
+                />
+
+                <Text style={styles.label}>Cantidad de botones</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  onChangeText={handleChange("cantidadBotones")}
+                  value={values.cantidadBotones}
+                />
+
+                <View style={styles.switchRow}>
+                  <Text style={styles.label}>¿Se debe pulir?</Text>
+                  <Switch
+                    value={values.pulir}
+                    onValueChange={(val) => {
+                      setFieldValue("pulir", val);
+                    }}
+                  />
+                </View>
+              </>
+            )}
+
+            <Button title="Guardar prenda" onPress={handleSubmit as any} />
+          </View>
+        )}
+      </Formik>
+    </ScrollView>
   );
 }
