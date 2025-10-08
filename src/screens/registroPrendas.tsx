@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import styles from "../styles/registroLotes.styles";
+import styles from "../styles/registroPrendas.styles";
 
 const validacionSquema = Yup.object().shape({
   tipoPrenda: Yup.string().required("Requerido"),
@@ -22,7 +22,7 @@ const validacionSquema = Yup.object().shape({
   precioXL: Yup.number().required("Requerido"),
 });
 
-export default function RegistroLotes() {
+export default function RegistroPrendas() {
   const [tieneAdiciones, setTieneAdiciones] = useState(false);
 
   return (
