@@ -9,9 +9,10 @@ import {
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import { Snackbar } from "react-native-paper";
 import styles from "../styles/registroPrendas.styles";
 
-const validacionSquema = Yup.object().shape({
+const validationSchema = Yup.object().shape({
   tipoPrenda: Yup.string().required("Requerido"),
   marca: Yup.string().required("Requerido"),
   referencia: Yup.string().required("Requerido"),
@@ -23,6 +24,10 @@ const validacionSquema = Yup.object().shape({
 });
 
 export default function RegistroPrendas() {
+
+  const [visible, setVisible] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
   const [tieneAdiciones, setTieneAdiciones] = useState(false);
 
   return (
@@ -41,10 +46,11 @@ export default function RegistroPrendas() {
           cantidadBotones: "",
           pulir: false,
         }}
-        validacionSquema={validacionSquema}
-        onSubmit={(values) => {
-          alert("Formulario enviado");
-          alert("Datos del formulario:\n" + JSON.stringify(values, null, 2));
+        validationSchema={validationSchema}
+        onSubmit={(values, { resetForm }) => {
+          setMensaje("Formulario enviado:\n" + JSON.stringify(values, null, 2));
+          setVisible(true);
+          resetForm();
         }}
       >
         {({
@@ -175,6 +181,19 @@ export default function RegistroPrendas() {
           </View>
         )}
       </Formik>
+
+      <Snackbar
+        visible={visible}
+        onDismiss={() => setVisible(false)}
+        duration={3000}
+        action={{
+          label: "Cerrar",
+          onPress: () => setVisible(false)
+        }}
+      >
+        {mensaje}
+      </Snackbar>
+
     </ScrollView>
   );
 }

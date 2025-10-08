@@ -4,7 +4,7 @@ import Layout from "../components/layout";
 
 export default function Facturacion() {
   return (
-    <Layout title="Facturacion">
+    <Layout title="Facturacion" scrollable>
       <Text>
         En este modulo se mostraran los lotes que en el checkout tengan el estado de completado
         se harán los cálculos para tener la facturación completa

@@ -5,8 +5,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import CheckOutLotes from "./src/screens/checkOutLotes";
 import Facturacion from "./src/screens/facturacion";
 import HistorialPrendas from "./src/screens/historialPrendas";
-import RegistroLotes from "./src/screens/registroPrendas";
-import RegistroPrendas from "./src/screens/registroLotes";
+import RegistroLotes from "./src/screens/registroLotes";
+import RegistroPrendas from "./src/screens/registroPrendas";
 import Clientes from "./src/screens/clientes";
 
 const Tab = createBottomTabNavigator();

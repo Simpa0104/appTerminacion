@@ -9,7 +9,7 @@ export default function HistorialPrendas() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   return (
-    <Layout title="Historial de Prendas">
+    <Layout title="Historial de Prendas" scrollable>
     <View style={styles.container}>
       <Button
         mode="contained"

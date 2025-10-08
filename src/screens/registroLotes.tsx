@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView } from "react-native";
 import { Button } from "react-native-paper";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import { Snackbar } from "react-native-paper";
 import styles from "../styles/registroLotes.styles";
 
-const validacionSquema = Yup.object().shape({
+const validationSchema = Yup.object().shape({
   fechaEntrada: Yup.string().required("Requerido"),
   fechaSalida: Yup.string().required("Requerido"),
   cliente: Yup.string().required("Requerido"),
@@ -22,6 +23,10 @@ const validacionSquema = Yup.object().shape({
 });
 
 export default function RegistroLotes() {
+
+  const [visible, setVisible] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
   return (
     <ScrollView style={styles.container}>
       <Formik
@@ -40,10 +45,11 @@ export default function RegistroLotes() {
           xl: "",
           total: "",
         }}
-        validacionSquema={validacionSquema}
-        onSubmit={(values) => {
-          alert("Formulario enviado");
-          alert("Datos del formulario:\n" + JSON.stringify(values, null, 2));
+        validationSchema={validationSchema}
+        onSubmit={(values, { resetForm }) => {
+          setMensaje("Formulario enviado:\n" + JSON.stringify(values, null, 2));
+          setVisible(true);
+          resetForm();
         }}
       >
         {({
@@ -197,6 +203,19 @@ export default function RegistroLotes() {
           </View>
         )}
       </Formik>
+      
+            <Snackbar
+              visible={visible}
+              onDismiss={() => setVisible(false)}
+              duration={3000}
+              action={{
+                label: "Cerrar",
+                onPress: () => setVisible(false)
+              }}
+            >
+              {mensaje}
+            </Snackbar>
+            
     </ScrollView>
   );
 }

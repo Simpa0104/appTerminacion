@@ -21,7 +21,7 @@ export default function CheckOutLotes() {
   };
 
   return (
-    <Layout title="Inicio">
+    <Layout title="Dashboard" scrollable>
       <View style={styles.container}>
         <View style={styles.buttonRow}>
           <Button
