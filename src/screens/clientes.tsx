@@ -4,6 +4,8 @@ import { Button } from "react-native-paper";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Snackbar } from "react-native-paper";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/clientes.styles";
 
 const validationSchema = Yup.object().shape({
@@ -26,10 +28,17 @@ export default function Clientes() {
           celular: "",
         }}
         validationSchema={validationSchema}
-        onSubmit={(values, { resetForm }) => {
-          setMensaje("Formulario enviado:\n" + JSON.stringify(values, null, 2));
-          setVisible(true);
-          resetForm();
+        onSubmit={async (values, { resetForm }) => {
+          try {
+            await addDoc(collection(db, "clientes"), values);
+            setMensaje("Cliente guardado correctamente");
+          } catch (error) {
+            console.error("Error guardando cliente:", error);
+            setMensaje("Error al guardar cliente");
+          } finally {
+            setVisible(true);
+            resetForm();
+          }
         }}
       >
         {({

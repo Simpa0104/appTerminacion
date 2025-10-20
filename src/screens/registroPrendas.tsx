@@ -10,6 +10,8 @@ import {
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { Snackbar } from "react-native-paper";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroPrendas.styles";
 
 const validationSchema = Yup.object().shape({
@@ -47,11 +49,18 @@ export default function RegistroPrendas() {
           pulir: false,
         }}
         validationSchema={validationSchema}
-        onSubmit={(values, { resetForm }) => {
-          setMensaje("Formulario enviado:\n" + JSON.stringify(values, null, 2));
-          setVisible(true);
-          resetForm();
-        }}
+                onSubmit={async (values, { resetForm }) => {
+                  try {
+                    await addDoc(collection(db, "prendas"), values);
+                    setMensaje("Prenda guardada correctamente");
+                  } catch (error) {
+                    console.error("Error guardando la prenda:", error);
+                    setMensaje("Error al guardar cla prenda");
+                  } finally {
+                    setVisible(true);
+                    resetForm();
+                  }
+                }}
       >
         {({
           handleChange,
