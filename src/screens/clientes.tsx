@@ -14,6 +14,9 @@ const validationSchema = Yup.object().shape({
   nombreCliente: Yup.string().required("Requerido"),
   empresa: Yup.string().required("Requerido"),
   celular: Yup.number().required("Requerido"),
+  nit: Yup.number().required("Requerido"),
+  direccionEmpresa: Yup.string().required("Requerido"),
+  ciudadEmpresa: Yup.string().required("Requerido"),
 });
 
 export default function Clientes() {
@@ -29,6 +32,9 @@ export default function Clientes() {
             nombreCliente: "",
             empresa: "",
             celular: "",
+            nit: "",
+            direccionEmpresa: "",
+            ciudadEmpresa: "",
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { resetForm }) => {
@@ -89,6 +95,34 @@ export default function Clientes() {
               {touched.celular && errors.celular && (
                 <Text style={styles.error}>{errors.celular}</Text>
               )}
+
+              <Text style={styles.label}>NIT</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholder="NIT del cliente"
+                value={values.nit}
+                onChangeText={handleChange("nit")}
+                onBlur={handleBlur("nit")}
+              />
+
+              <Text style={styles.label}>Dirección de la empresa</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Dirección de la empresa"
+                value={values.direccionEmpresa}
+                onChangeText={handleChange("direccionEmpresa")}
+                onBlur={handleBlur("direccionEmpresa")}
+              />
+
+              <Text style={styles.label}>Ciudad de la empresa</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ciudad de la empresa"
+                value={values.ciudadEmpresa}
+                onChangeText={handleChange("ciudadEmpresa")}
+                onBlur={handleBlur("ciudadEmpresa")}
+              />
 
               <Button
                 mode="contained"
