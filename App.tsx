@@ -1,8 +1,9 @@
+// App.tsx
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Provider as PaperProvider } from "react-native-paper"; // ← 👈 Importante
+import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
 
 import CheckOutLotes from "./src/screens/dashBoard";
 import LoteDetalles from "./src/screens/LoteDetalles";
@@ -11,6 +12,18 @@ import HistorialPrendas from "./src/screens/historialPrendas";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+const paperTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#007AFF",
+    accent: "#caa2ff",
+    background: "#ffffff",
+    surface: "#ffffff",
+    text: "#111827",
+  },
+};
 
 function TabNavigator() {
   return (
@@ -24,8 +37,7 @@ function TabNavigator() {
 
 export default function App() {
   return (
-    // 👇 ENVUELVE TODO CON EL PROVIDER DE react-native-paper
-    <PaperProvider>
+    <PaperProvider theme={paperTheme}>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="MainTabs" component={TabNavigator} />

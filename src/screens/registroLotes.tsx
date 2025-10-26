@@ -1,12 +1,23 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView } from "react-native";
-import { Button } from "react-native-paper";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
+import { Button, Snackbar } from "react-native-paper";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { Snackbar } from "react-native-paper";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroLotes.styles";
+import useFetchCollection from "../hooks/useFetchCollection";
+import SelectDropdown from "react-native-select-dropdown";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const validationSchema = Yup.object().shape({
   fechaEntrada: Yup.string().required("Requerido"),
@@ -14,217 +25,229 @@ const validationSchema = Yup.object().shape({
   cliente: Yup.string().required("Requerido"),
   colores: Yup.number().required("Requerido"),
   tipoPrenda: Yup.string().required("Requerido"),
-  referencia: Yup.string().required("Requerido"),
-  implementos: Yup.string(),
-  xs: Yup.number(),
-  s: Yup.number(),
-  m: Yup.number(),
-  l: Yup.number(),
-  xl: Yup.number(),
-  total: Yup.number().required("Requerido"),
+  referenciaLote: Yup.string().required("Requerido"),
+  referenciaPrenda: Yup.string().required("Requerido"),
+  insumos: Yup.string(),
 });
 
 export default function RegistroLotes() {
-
   const [visible, setVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [fechaEntrada, setFechaEntrada] = useState(new Date());
+  const [fechaSalida, setFechaSalida] = useState(new Date());
+  const [mostrarPickerEntrada, setMostrarPickerEntrada] = useState(false);
+  const [mostrarPickerSalida, setMostrarPickerSalida] = useState(false);
+
+  const { data: prendas, loading: loadingPrendas } = useFetchCollection("prendas");
+  const { data: clientes, loading: loadingClientes } = useFetchCollection("clientes");
+
+  if (loadingPrendas || loadingClientes) return <Text>Cargando datos...</Text>;
+
+  const opcionesClientes = [
+    ...new Set(clientes.map((item) => item.nombreCliente || item.cliente)),
+  ];
+  const opcionesPrendas = [...new Set(prendas.map((item) => item.tipoPrenda))];
+  const opcionesReferencias = [...new Set(prendas.map((item) => item.referencia))];
 
   return (
-    <ScrollView style={styles.container}>
-      <Formik
-        initialValues={{
-          fechaEntrada: "",
-          fechaSalida: "",
-          cliente: "",
-          colores: "",
-          tipoPrenda: "",
-          referencia: "",
-          implementos: "",
-          xs: "",
-          s: "",
-          m: "",
-          l: "",
-          xl: "",
-          total: "",
-        }}
-        validationSchema={validationSchema}
-                onSubmit={async (values, { resetForm }) => {
-                  try {
-                    await addDoc(collection(db, "lotes"), values);
-                    setMensaje("Lote guardado correctamente");
-                  } catch (error) {
-                    console.error("Error guardando el lote:", error);
-                    setMensaje("Error al guardar el lote");
-                  } finally {
-                    setVisible(true);
-                    resetForm();
-                  }
-                }}
-      >
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          touched,
-        }) => (
-          <View>
-            <Text style={styles.label}>Fecha de entrada del lote</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="YYYY-MM-DD"
-              value={values.fechaEntrada}
-              onChangeText={handleChange("fechaEntrada")}
-              onBlur={handleBlur("fechaEntrada")}
-            />
-            {touched.fechaEntrada && errors.fechaEntrada && (
-              <Text style={styles.error}>{errors.fechaEntrada}</Text>
-            )}
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <Formik
+          initialValues={{
+            fechaEntrada: fechaEntrada.toISOString().split("T")[0],
+            fechaSalida: fechaSalida.toISOString().split("T")[0],
+            cliente: "",
+            colores: "",
+            tipoPrenda: "",
+            referenciaLote: "",
+            referenciaPrenda: "",
+            insumos: "",
+            xs: "",
+            s: "",
+            m: "",
+            l: "",
+            xl: "",
+            totalPrendas: 0,
+            totalLote: 0,
+          }}
+          validationSchema={validationSchema}
+          onSubmit={async (values, { resetForm }) => {
+            try {
+              await addDoc(collection(db, "lotes"), values);
+              setMensaje("Lote guardado correctamente");
+            } catch (error) {
+              console.error("Error guardando el lote:", error);
+              setMensaje("Error al guardar el lote");
+            } finally {
+              setVisible(true);
+              resetForm();
+            }
+          }}
+        >
+          {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched }) => {
+            // 🧮 Cálculo automático
+            useEffect(() => {
+              const parseNum = (val) => (isNaN(val) || val === "" ? 0 : Number(val));
+              const totalTallas =
+                parseNum(values.xs) +
+                parseNum(values.s) +
+                parseNum(values.m) +
+                parseNum(values.l) +
+                parseNum(values.xl);
 
-            <Text style={styles.label}>Fecha de salida del lote</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="YYYY-MM-DD"
-              value={values.fechaSalida}
-              onChangeText={handleChange("fechaSalida")}
-              onBlur={handleBlur("fechaSalida")}
-            />
-            {touched.fechaSalida && errors.fechaSalida && (
-              <Text style={styles.error}>{errors.fechaSalida}</Text>
-            )}
+              const totalPrendas = totalTallas * parseNum(values.colores);
 
-            <Text style={styles.label}>Cliente</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre del cliente"
-              value={values.cliente}
-              onChangeText={handleChange("cliente")}
-              onBlur={handleBlur("cliente")}
-            />
-            {touched.cliente && errors.cliente && (
-              <Text style={styles.error}>{errors.cliente}</Text>
-            )}
+              const prendaSeleccionada = prendas.find(
+                (p) => p.referencia === values.referenciaPrenda
+              );
+              const precioPrenda = prendaSeleccionada ? parseNum(prendaSeleccionada.costoTotal) : 0;
 
-            <Text style={styles.label}>Colores en total por lote</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.colores}
-              onChangeText={handleChange("colores")}
-              onBlur={handleBlur("colores")}
-            />
-            {touched.colores && errors.colores && (
-              <Text style={styles.error}>{errors.colores}</Text>
-            )}
+              const totalLote = totalPrendas * precioPrenda;
 
-            <Text style={styles.label}>Tipo de prenda</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Camisa, pantalón, etc."
-              value={values.tipoPrenda}
-              onChangeText={handleChange("tipoPrenda")}
-              onBlur={handleBlur("tipoPrenda")}
-            />
-            {touched.tipoPrenda && errors.tipoPrenda && (
-              <Text style={styles.error}>{errors.tipoPrenda}</Text>
-            )}
+              setFieldValue("totalPrendas", totalPrendas);
+              setFieldValue("totalLote", totalLote);
+            }, [values.xs, values.s, values.m, values.l, values.xl, values.colores, values.referenciaPrenda]);
 
-            <Text style={styles.label}>Referencia</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Referencia"
-              value={values.referencia}
-              onChangeText={handleChange("referencia")}
-              onBlur={handleBlur("referencia")}
-            />
-            {touched.referencia && errors.referencia && (
-              <Text style={styles.error}>{errors.referencia}</Text>
-            )}
+            return (
+              <View>
+                {/* Fecha entrada */}
+                <Text style={styles.label}>Fecha de entrada</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setMostrarPickerEntrada(true)}
+                >
+                  <Text>{values.fechaEntrada}</Text>
+                  <Icon name="calendar" size={20} />
+                </TouchableOpacity>
+                {mostrarPickerEntrada && (
+                  <DateTimePicker
+                    value={fechaEntrada}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setMostrarPickerEntrada(false);
+                      if (selectedDate) {
+                        setFechaEntrada(selectedDate);
+                        const f = selectedDate.toISOString().split("T")[0];
+                        setFieldValue("fechaEntrada", f);
+                      }
+                    }}
+                  />
+                )}
 
-            <Text style={styles.label}>Implementos</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Hilo, botones, etc."
-              value={values.implementos}
-              onChangeText={handleChange("implementos")}
-            />
+                {/* Fecha salida */}
+                <Text style={styles.label}>Fecha de salida</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setMostrarPickerSalida(true)}
+                >
+                  <Text>{values.fechaSalida}</Text>
+                  <Icon name="calendar" size={20} />
+                </TouchableOpacity>
+                {mostrarPickerSalida && (
+                  <DateTimePicker
+                    value={fechaSalida}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setMostrarPickerSalida(false);
+                      if (selectedDate) {
+                        setFechaSalida(selectedDate);
+                        const f = selectedDate.toISOString().split("T")[0];
+                        setFieldValue("fechaSalida", f);
+                      }
+                    }}
+                  />
+                )}
 
-            <Text style={styles.label}>Cantidad XS / EP / ECH</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.xs}
-              onChangeText={handleChange("xs")}
-            />
+                {/* Cliente */}
+                <Text style={styles.label}>Cliente</Text>
+                <SelectDropdown
+                  data={opcionesClientes}
+                  onSelect={(selectedItem) => setFieldValue("cliente", selectedItem)}
+                  buttonStyle={styles.dropdownButton}
+                  buttonTextStyle={styles.dropdownButtonText}
+                  dropdownStyle={{ backgroundColor: "#fff" }}
+                  renderButton={(selectedItem) => (
+                    <Text style={styles.dropdownButtonText}>
+                      {selectedItem || "Seleccione un cliente"}
+                    </Text>
+                  )}
+                />
 
-            <Text style={styles.label}>Cantidad S / P / CH</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.s}
-              onChangeText={handleChange("s")}
-            />
+                {/* Colores */}
+                <Text style={styles.label}>Colores por lote</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={values.colores}
+                  onChangeText={handleChange("colores")}
+                />
 
-            <Text style={styles.label}>Cantidad M / M / M</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.m}
-              onChangeText={handleChange("m")}
-            />
+                {/* Tipo de prenda */}
+                <Text style={styles.label}>Tipo de prenda</Text>
+                <SelectDropdown
+                  data={opcionesPrendas}
+                  onSelect={(selectedItem) => setFieldValue("tipoPrenda", selectedItem)}
+                  buttonStyle={styles.dropdownButton}
+                  renderButton={(selectedItem) => (
+                    <Text style={styles.dropdownButtonText}>
+                      {selectedItem || "Seleccione tipo de prenda"}
+                    </Text>
+                  )}
+                />
 
-            <Text style={styles.label}>Cantidad L / G / G</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.l}
-              onChangeText={handleChange("l")}
-            />
+                {/* Referencia */}
+                <Text style={styles.label}>Referencia prenda</Text>
+                <SelectDropdown
+                  data={opcionesReferencias}
+                  onSelect={(selectedItem) => setFieldValue("referenciaPrenda", selectedItem)}
+                  buttonStyle={styles.dropdownButton}
+                  renderButton={(selectedItem) => (
+                    <Text style={styles.dropdownButtonText}>
+                      {selectedItem || "Seleccione referencia"}
+                    </Text>
+                  )}
+                />
 
-            <Text style={styles.label}>Cantidad XL / EG / EG</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.xl}
-              onChangeText={handleChange("xl")}
-            />
+                {/* Tallas */}
+                {["xs", "s", "m", "l", "xl"].map((talla) => (
+                  <View key={talla}>
+                    <Text style={styles.label}>{talla.toUpperCase()}</Text>
+                    <TextInput
+                      style={styles.input}
+                      keyboardType="numeric"
+                      value={values[talla]}
+                      onChangeText={handleChange(talla)}
+                    />
+                  </View>
+                ))}
 
-            <Text style={styles.label}>Total de prendas</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={values.total}
-              onChangeText={handleChange("total")}
-              onBlur={handleBlur("total")}
-            />
-            {touched.total && errors.total && (
-              <Text style={styles.error}>{errors.total}</Text>
-            )}
+                {/* Totales */}
+                <Text style={styles.label}>Total de prendas: {values.totalPrendas}</Text>
+                <Text style={styles.label}>Total del lote: ${values.totalLote}</Text>
 
-            <Button
-              mode="contained"
-              style={styles.submitButton}
-              onPress={handleSubmit as any}
-            >
-              Guardar Lote
-            </Button>
-          </View>
-        )}
-      </Formik>
-      
-            <Snackbar
-              visible={visible}
-              onDismiss={() => setVisible(false)}
-              duration={3000}
-              action={{
-                label: "Cerrar",
-                onPress: () => setVisible(false)
-              }}
-            >
-              {mensaje}
-            </Snackbar>
-            
-    </ScrollView>
+                <Button
+                  mode="contained"
+                  style={styles.submitButton}
+                  onPress={handleSubmit as any}
+                >
+                  Guardar Lote
+                </Button>
+              </View>
+            );
+          }}
+        </Formik>
+
+        <Snackbar
+          visible={visible}
+          onDismiss={() => setVisible(false)}
+          duration={3000}
+          action={{ label: "Cerrar", onPress: () => setVisible(false) }}
+        >
+          {mensaje}
+        </Snackbar>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -4,6 +4,7 @@ export default StyleSheet.create({
   container: {
     padding: 16,
     flex: 1,
+    backgroundColor: "#f4f4f4",
   },
 
   headerRow: {
@@ -37,14 +38,24 @@ export default StyleSheet.create({
 
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginVertical: 10,
+  },
+
+  // contenedor general de tabla (para horizontal scroll)
+  tableScrollContainer: {
+    // si quieres que ocupe todo el ancho posible
+    paddingBottom: 10,
+  },
+
+  tableContainer: {
+    minWidth: 900, // si quieres forzar ancho mínimo para que no se corte; ajusta según columnas
   },
 
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#e0e0e0",
-    paddingVertical: 8,
+    backgroundColor: "#e9e9e9",
+    paddingVertical: 12,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
@@ -53,8 +64,8 @@ export default StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderColor: "#ddd",
-    paddingVertical: 8,
+    borderColor: "#e6e6e6",
+    paddingVertical: 18,
     alignItems: "center",
   },
 
@@ -64,7 +75,49 @@ export default StyleSheet.create({
   },
 
   headerText: {
-    fontWeight: "bold",
+    fontWeight: "700",
+  },
+
+  // columnas (anchos)
+  colReferencia: {
+    width: 220,
+  },
+  colFecha: {
+    width: 200,
+  },
+  colTipo: {
+    width: 220,
+  },
+  colEstado: {
+    width: 220,
+  },
+  colAccion: {
+    width: 140,
+  },
+
+  // overlay (se usa Portal) — sobre la tabla
+  overlay: {
+    position: "absolute",
+    top: 100,
+    left: 20,
+    right: 20,
+    bottom: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+
+  overlayCard: {
+    width: "100%",
+    maxHeight: "85%",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+
+  overlayContent: {
+    flexGrow: 1,
+    paddingVertical: 8,
+    maxHeight: 500,
   },
 
   card: {

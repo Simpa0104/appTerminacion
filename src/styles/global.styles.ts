@@ -1,6 +1,6 @@
-// src/styles/global.styles.ts
 import { StyleSheet } from "react-native";
 import { theme } from "./theme";
+import styled from "styled-components/native";
 
 export default StyleSheet.create({
   container: {
@@ -50,3 +50,16 @@ export default StyleSheet.create({
     marginTop: theme.spacing.xs,
   },
 });
+
+export const FormContainer = styled.ScrollView`
+  flex: 1;
+  background-color: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 3;
+`;

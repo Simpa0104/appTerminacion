@@ -1,43 +1,103 @@
+// src/screens/LoteDetalles.tsx
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { Button, Card } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import styles from "../styles/loteDetalles.styles";
 
 export default function LoteDetalles() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { lote }: any = route.params;
+  const { lote }: any = route.params ?? { lote: null };
+
+  if (!lote) {
+    return (
+      <ScrollView style={styles.scrollContent}>
+        <Text>No hay datos del lote.</Text>
+        <Button onPress={() => navigation.goBack()}>Volver</Button>
+      </ScrollView>
+    );
+  }
 
   return (
-    <ScrollView style={{ padding: 16, backgroundColor: "#f4f4f4", flex: 1 }}>
-      <Card style={{ padding: 16 }}>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
-          Detalles del lote
-        </Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Card style={styles.card}>
+          <Text style={styles.title}>Detalles del Lote</Text>
 
-        <Text>Referencia: {lote.referencia}</Text>
-        <Text>Cliente: {lote.cliente}</Text>
-        <Text>Fecha de entrada: {lote.fechaEntrada}</Text>
-        <Text>Fecha de salida: {lote.fechaSalida}</Text>
-        <Text>Tipo de prenda: {lote.tipoPrenda}</Text>
-        <Text>Colores: {lote.colores}</Text>
-        <Text>Implementos: {lote.implementos}</Text>
-        <Text>XS: {lote.xs}</Text>
-        <Text>S: {lote.s}</Text>
-        <Text>M: {lote.m}</Text>
-        <Text>L: {lote.l}</Text>
-        <Text>XL: {lote.xl}</Text>
-        <Text>Total de prendas: {lote.total}</Text>
-        <Text>Estado actual: {lote.estado}</Text>
+          <View style={styles.section}>
+            <Text style={styles.label}>Referencia</Text>
+            <Text style={styles.value}>{lote.referencia}</Text>
+          </View>
 
-        <Button
-          mode="contained"
-          style={{ marginTop: 20 }}
-          onPress={() => navigation.goBack()}
-        >
-          Volver al Dashboard
-        </Button>
-      </Card>
-    </ScrollView>
+          <View style={styles.section}>
+            <Text style={styles.label}>Cliente</Text>
+            <Text style={styles.value}>{lote.cliente}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Fechas</Text>
+            <Text style={styles.value}>Entrada: {lote.fechaEntrada}</Text>
+            <Text style={styles.value}>Salida: {lote.fechaSalida}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Tipo de prenda</Text>
+            <Text style={styles.value}>{lote.tipoPrenda}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Colores</Text>
+            <Text style={styles.value}>{lote.colores}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Implementos</Text>
+            <Text style={styles.value}>{lote.implementos}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Tallas</Text>
+            <View style={styles.sizeContainer}>
+              <View style={styles.sizeBox}>
+                <Text style={styles.sizeText}>XS: {lote.xs}</Text>
+              </View>
+              <View style={styles.sizeBox}>
+                <Text style={styles.sizeText}>S: {lote.s}</Text>
+              </View>
+              <View style={styles.sizeBox}>
+                <Text style={styles.sizeText}>M: {lote.m}</Text>
+              </View>
+              <View style={styles.sizeBox}>
+                <Text style={styles.sizeText}>L: {lote.l}</Text>
+              </View>
+              <View style={styles.sizeBox}>
+                <Text style={styles.sizeText}>XL: {lote.xl}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Total de prendas</Text>
+            <Text style={styles.value}>{lote.total}</Text>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Estado actual</Text>
+            <Text style={styles.value}>{lote.estado}</Text>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              mode="contained"
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              Volver al Dashboard
+            </Button>
+          </View>
+        </Card>
+      </ScrollView>
+    </View>
   );
 }

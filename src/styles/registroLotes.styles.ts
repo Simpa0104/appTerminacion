@@ -1,43 +1,69 @@
+import styled from "styled-components/native";
 import { StyleSheet } from "react-native";
-import { theme } from "./theme";
 
 export default StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        backgroundColor: "#F7F9FC",
+        paddingHorizontal: 20,
+        paddingTop: 25,
     },
-    field: {
-        marginBottom: 16,
-    },
+
     label: {
-        fontSize: 14,
-        marginBottom: 4,
-        fontWeight: "bold",
+        fontSize: 15,
         color: "#333",
+        fontWeight: "600",
+        marginBottom: 6,
+        marginTop: 14,
     },
+
     input: {
+        backgroundColor: "#FFF",
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        padding: 10,
-        backgroundColor: "#fff",
+        borderColor: "#DDD",
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        fontSize: 15,
     },
-    submitButton: {
-        marginTop: 20,
-        backgroundColor: "#007AFF",
-    },
-    error: {
-        color: "red",
-        fontSize: 12,
-        marginTop: 4,
-    },
-    switchRow: {
+
+    dateButton: {
         flexDirection: "row",
-        alignItems: "center",
         justifyContent: "space-between",
-        marginVertical: 8,
+        alignItems: "center",
+        backgroundColor: "#FFF",
+        borderWidth: 1,
+        borderColor: "#DDD",
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
     },
-    form: {
-        marginVertical: 10,
+
+    dropdownButton: {
+        backgroundColor: "#FFF",
+        borderWidth: 1,
+        borderColor: "#DDD",
+        borderRadius: 12,
+        height: 48,
+        justifyContent: "center",
+        marginBottom: 6,
+    },
+
+    dropdownButtonText: {
+        fontSize: 15,
+        color: "#333",
+        textAlign: "left",
+    },
+
+    submitButton: {
+        marginTop: 25,
+        borderRadius: 14,
+        backgroundColor: "#007bff",
+        paddingVertical: 8,
+    },
+
+    scrollContainer: {
+        flexGrow: 1,
+        paddingBottom: 100,
     },
 });

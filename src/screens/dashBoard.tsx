@@ -1,6 +1,7 @@
+// src/screens/dashBoard.tsx
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, TextInput } from "react-native";
-import { Card, Button, Menu } from "react-native-paper";
+import { View, ScrollView, Text, TextInput, SafeAreaView } from "react-native";
+import { Card, Button, Menu, Portal } from "react-native-paper";
 import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import RegistroLotes from "./registroLotes";
@@ -10,7 +11,6 @@ import styles from "../styles/checkOutLotes.styles";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
 
-
 export default function CheckOutLotes() {
   const [visibleForm, setVisibleForm] = useState<null | "lotes" | "prendas" | "clientes">(null);
   const [lotes, setLotes] = useState<any[]>([]);
@@ -19,13 +19,9 @@ export default function CheckOutLotes() {
   const [search, setSearch] = useState("");
   const navigation = useNavigation();
 
-  // Escucha en tiempo real los lotes
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
-      const lotesData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setLotes(lotesData);
       setLoading(false);
     });
@@ -39,27 +35,24 @@ export default function CheckOutLotes() {
   const actualizarEstado = async (id: string, nuevoEstado: string) => {
     try {
       await updateDoc(doc(db, "lotes", id), { estado: nuevoEstado });
-      setLotes((prev) =>
-        prev.map((lote) =>
-          lote.id === id ? { ...lote, estado: nuevoEstado } : lote
-        )
-      );
-    } catch (error) {
-      console.error("Error actualizando el estado:", error);
+      setLotes((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)));
+    } catch (err) {
+      console.error("Error actualizando estado:", err);
     }
   };
 
+  const term = search.trim().toLowerCase();
   const lotesFiltrados = lotes.filter((lote) => {
-    const term = search.toLowerCase();
+    if (!term) return true;
     return (
-      lote.cliente?.toLowerCase().includes(term) ||
-      lote.referencia?.toLowerCase().includes(term) ||
-      lote.tipoPrenda?.toLowerCase().includes(term) ||
-      String(lote.total)?.includes(term)
+      String(lote.cliente || "").toLowerCase().includes(term) ||
+      String(lote.referencia || "").toLowerCase().includes(term) ||
+      String(lote.tipoPrenda || "").toLowerCase().includes(term) ||
+      String(lote.total || "").includes(term)
     );
   });
 
-  const forms = {
+  const forms: Record<string, { title: string; component: React.ReactNode }> = {
     lotes: { title: "Registro de lotes", component: <RegistroLotes /> },
     prendas: { title: "Registro de prendas", component: <RegistroPrendas /> },
     clientes: { title: "Registro de clientes", component: <Clientes /> },
@@ -67,8 +60,8 @@ export default function CheckOutLotes() {
 
   return (
     <Layout title="Dashboard" scrollable>
-      <View style={styles.container}>
-        {/* Botones principales + buscador */}
+      <SafeAreaView style={styles.container}>
+        {/* header row: botones + search */}
         <View style={styles.headerRow}>
           <View style={styles.buttonRow}>
             <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
@@ -92,45 +85,38 @@ export default function CheckOutLotes() {
 
         <Text style={styles.sectionTitle}>Lotes registrados</Text>
 
-        {/* 🧾 Tabla */}
         {loading ? (
           <Text>Cargando lotes...</Text>
         ) : lotesFiltrados.length === 0 ? (
           <Text>No se encontraron lotes.</Text>
         ) : (
-          <ScrollView
-            horizontal
-            contentContainerStyle={{ width: "100%", paddingBottom: 10 }}
-            showsHorizontalScrollIndicator={true}
-          >
-            <View>
-              {/* Encabezado */}
+          // El ScrollView horizontal permite si la tabla necesita más ancho
+          <ScrollView horizontal contentContainerStyle={styles.tableScrollContainer} showsHorizontalScrollIndicator>
+            <View style={styles.tableContainer}>
+              {/* encabezado */}
               <View style={styles.tableHeader}>
-                <Text style={[styles.tableCell, styles.headerText, { width: 280 }]}>Referencia</Text>
-                <Text style={[styles.tableCell, styles.headerText, { width: 280 }]}>Fecha salida</Text>
-                <Text style={[styles.tableCell, styles.headerText, { width: 280 }]}>Tipo prenda</Text>
-                <Text style={[styles.tableCell, styles.headerText, { width: 280 }]}>Estado</Text>
-                <Text style={[styles.tableCell, styles.headerText, { width: 280 }]}>Acción</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colReferencia]}>Referencia</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colFecha]}>Fecha salida</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colTipo]}>Tipo prenda</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colEstado]}>Estado</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colAccion]}>Acción</Text>
               </View>
 
-              {/* Filas */}
+              {/* filas */}
               {lotesFiltrados.map((lote) => (
                 <View key={lote.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, { width: 280 }]}>{lote.referencia}</Text>
-                  <Text style={[styles.tableCell, { width: 280 }]}>{lote.fechaSalida}</Text>
-                  <Text style={[styles.tableCell, { width: 280 }]}>{lote.tipoPrenda}</Text>
+                  <Text style={[styles.tableCell, styles.colReferencia]}>{lote.referencia}</Text>
+                  <Text style={[styles.tableCell, styles.colFecha]}>{lote.fechaSalida}</Text>
+                  <Text style={[styles.tableCell, styles.colTipo]}>{lote.tipoPrenda}</Text>
 
-                  {/* Menú de estado */}
-                  <View style={[styles.tableCell, { width: 280 }]}>
+                  <View style={[styles.tableCell, styles.colEstado]}>
                     <Menu
                       visible={menuVisible === lote.id}
                       onDismiss={() => setMenuVisible(null)}
                       anchor={
                         <Button
                           mode="outlined"
-                          onPress={() =>
-                            setMenuVisible(menuVisible === lote.id ? null : lote.id)
-                          }
+                          onPress={() => setMenuVisible(menuVisible === lote.id ? null : lote.id)}
                         >
                           {lote.estado || "Recibido"}
                         </Button>
@@ -149,13 +135,10 @@ export default function CheckOutLotes() {
                     </Menu>
                   </View>
 
-                  {/* Botón de detalles */}
-                  <View style={[styles.tableCell, { width: 280 }]}>
+                  <View style={[styles.tableCell, styles.colAccion]}>
                     <Button
                       mode="text"
-                      onPress={() =>
-                        navigation.navigate("LoteDetalles" as never, { lote } as never)
-                      }
+                      onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}
                     >
                       Ver detalles
                     </Button>
@@ -166,16 +149,28 @@ export default function CheckOutLotes() {
           </ScrollView>
         )}
 
-        {/* 📋 Formulario dinámico */}
-        {visibleForm && (
-          <Card style={styles.card}>
-            <Card.Title title={forms[visibleForm].title} />
-            <Card.Content style={{ height: 400 }}>
-              <ScrollView>{forms[visibleForm].component}</ScrollView>
-            </Card.Content>
-          </Card>
-        )}
-      </View>
+        <Portal>
+          {visibleForm && (
+            <View style={styles.overlay}>
+              <Card style={styles.overlayCard}>
+                <Card.Title title={forms[visibleForm].title} />
+                <Card.Content style={styles.overlayContent}>
+                  <ScrollView
+                    showsVerticalScrollIndicator
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                  >
+                    {forms[visibleForm].component}
+                  </ScrollView>
+                </Card.Content>
+
+                <Card.Actions style={{ justifyContent: "flex-end" }}>
+                  <Button onPress={() => setVisibleForm(null)}>Cerrar</Button>
+                </Card.Actions>
+              </Card>
+            </View>
+          )}
+        </Portal>
+      </SafeAreaView>
     </Layout>
   );
 }
