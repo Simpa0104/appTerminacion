@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Modal,
+  FlatList,
 } from "react-native";
 import { Button, Snackbar } from "react-native-paper";
 import { Formik } from "formik";
@@ -15,9 +17,8 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroLotes.styles";
 import useFetchCollection from "../hooks/useFetchCollection";
-import SelectDropdown from "react-native-select-dropdown";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const validationSchema = Yup.object().shape({
   fechaEntrada: Yup.string().required("Requerido"),
@@ -27,27 +28,116 @@ const validationSchema = Yup.object().shape({
   tipoPrenda: Yup.string().required("Requerido"),
   referenciaLote: Yup.string().required("Requerido"),
   referenciaPrenda: Yup.string().required("Requerido"),
-  insumos: Yup.string(),
 });
 
-export default function RegistroLotes() {
+// Componente Dropdown personalizado
+const CustomDropdown = ({
+  label,
+  data,
+  value,
+  onSelect,
+  placeholder = "Seleccionar...",
+  disabled = false,
+  error
+}: any) => {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity
+        style={[styles.dropdownButton, disabled && styles.dropdownDisabled]}
+        onPress={() => !disabled && setVisible(true)}
+        disabled={disabled}
+      >
+        <Text style={[styles.dropdownButtonText, !value && { color: "#999" }]}>
+          {value || placeholder}
+        </Text>
+        <MaterialCommunityIcons name="chevron-down" size={20} color="#666" />
+      </TouchableOpacity>
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{label}</Text>
+              <TouchableOpacity onPress={() => setVisible(false)}>
+                <MaterialCommunityIcons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={data}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    onSelect(item);
+                    setVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+};
+
+interface RegistroLotesProps {
+  onSuccess?: () => void;
+}
+
+export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
   const [visible, setVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [fechaEntrada, setFechaEntrada] = useState(new Date());
   const [fechaSalida, setFechaSalida] = useState(new Date());
   const [mostrarPickerEntrada, setMostrarPickerEntrada] = useState(false);
   const [mostrarPickerSalida, setMostrarPickerSalida] = useState(false);
+  const [prendaSeleccionada, setPrendaSeleccionada] = useState<any>(null);
 
   const { data: prendas, loading: loadingPrendas } = useFetchCollection("prendas");
   const { data: clientes, loading: loadingClientes } = useFetchCollection("clientes");
 
-  if (loadingPrendas || loadingClientes) return <Text>Cargando datos...</Text>;
+  if (loadingPrendas || loadingClientes) {
+    return (
+      <View style={styles.container}>
+        <Text>Cargando datos...</Text>
+      </View>
+    );
+  }
 
+  // Opciones para los dropdowns
   const opcionesClientes = [
     ...new Set(clientes.map((item) => item.nombreCliente || item.cliente)),
-  ];
-  const opcionesPrendas = [...new Set(prendas.map((item) => item.tipoPrenda))];
-  const opcionesReferencias = [...new Set(prendas.map((item) => item.referencia))];
+  ].filter(Boolean);
+
+  const opcionesTiposPrenda = [...new Set(prendas.map((item) => item.tipoPrenda))].filter(Boolean);
+
+  // Función para obtener referencias filtradas por tipo
+  const obtenerReferenciasPorTipo = (tipoPrenda: string) => {
+    if (!tipoPrenda) return prendas.map((p) => p.referencia).filter(Boolean);
+    return prendas
+      .filter((p) => p.tipoPrenda === tipoPrenda)
+      .map((p) => p.referencia)
+      .filter(Boolean);
+  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
@@ -73,21 +163,33 @@ export default function RegistroLotes() {
           validationSchema={validationSchema}
           onSubmit={async (values, { resetForm }) => {
             try {
-              await addDoc(collection(db, "lotes"), values);
+              await addDoc(collection(db, "lotes"), {
+                ...values,
+                estado: "Recibido",
+              });
               setMensaje("Lote guardado correctamente");
+              setPrendaSeleccionada(null);
+              resetForm();
+
+              // Cerrar el modal después de 1.5 segundos
+              setTimeout(() => {
+                if (onSuccess) {
+                  onSuccess();
+                }
+              }, 1500);
             } catch (error) {
               console.error("Error guardando el lote:", error);
               setMensaje("Error al guardar el lote");
             } finally {
               setVisible(true);
-              resetForm();
             }
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched }) => {
-            // 🧮 Cálculo automático
+            // 🧮 Cálculo automático de totales
             useEffect(() => {
-              const parseNum = (val) => (isNaN(val) || val === "" ? 0 : Number(val));
+              const parseNum = (val: any) => (isNaN(val) || val === "" ? 0 : Number(val));
+
               const totalTallas =
                 parseNum(values.xs) +
                 parseNum(values.s) +
@@ -96,28 +198,31 @@ export default function RegistroLotes() {
                 parseNum(values.xl);
 
               const totalPrendas = totalTallas * parseNum(values.colores);
-
-              const prendaSeleccionada = prendas.find(
-                (p) => p.referencia === values.referenciaPrenda
-              );
-              const precioPrenda = prendaSeleccionada ? parseNum(prendaSeleccionada.costoTotal) : 0;
-
-              const totalLote = totalPrendas * precioPrenda;
+              const precioUnitario = prendaSeleccionada ? parseNum(prendaSeleccionada.precioTotal) : 0;
+              const totalLote = totalPrendas * precioUnitario;
 
               setFieldValue("totalPrendas", totalPrendas);
               setFieldValue("totalLote", totalLote);
-            }, [values.xs, values.s, values.m, values.l, values.xl, values.colores, values.referenciaPrenda]);
+            }, [
+              values.xs,
+              values.s,
+              values.m,
+              values.l,
+              values.xl,
+              values.colores,
+              prendaSeleccionada,
+            ]);
 
             return (
               <View>
-                {/* Fecha entrada */}
+                {/* ========== FECHA ENTRADA ========== */}
                 <Text style={styles.label}>Fecha de entrada</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => setMostrarPickerEntrada(true)}
                 >
                   <Text>{values.fechaEntrada}</Text>
-                  <Icon name="calendar" size={20} />
+                  <MaterialCommunityIcons name="calendar" size={20} />
                 </TouchableOpacity>
                 {mostrarPickerEntrada && (
                   <DateTimePicker
@@ -128,21 +233,20 @@ export default function RegistroLotes() {
                       setMostrarPickerEntrada(false);
                       if (selectedDate) {
                         setFechaEntrada(selectedDate);
-                        const f = selectedDate.toISOString().split("T")[0];
-                        setFieldValue("fechaEntrada", f);
+                        setFieldValue("fechaEntrada", selectedDate.toISOString().split("T")[0]);
                       }
                     }}
                   />
                 )}
 
-                {/* Fecha salida */}
+                {/* ========== FECHA SALIDA ========== */}
                 <Text style={styles.label}>Fecha de salida</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => setMostrarPickerSalida(true)}
                 >
                   <Text>{values.fechaSalida}</Text>
-                  <Icon name="calendar" size={20} />
+                  <MaterialCommunityIcons name="calendar" size={20} />
                 </TouchableOpacity>
                 {mostrarPickerSalida && (
                   <DateTimePicker
@@ -153,80 +257,132 @@ export default function RegistroLotes() {
                       setMostrarPickerSalida(false);
                       if (selectedDate) {
                         setFechaSalida(selectedDate);
-                        const f = selectedDate.toISOString().split("T")[0];
-                        setFieldValue("fechaSalida", f);
+                        setFieldValue("fechaSalida", selectedDate.toISOString().split("T")[0]);
                       }
                     }}
                   />
                 )}
 
-                {/* Cliente */}
-                <Text style={styles.label}>Cliente</Text>
-                <SelectDropdown
+                {/* ========== CLIENTE ========== */}
+                <CustomDropdown
+                  label="Cliente"
                   data={opcionesClientes}
-                  onSelect={(selectedItem) => setFieldValue("cliente", selectedItem)}
-                  buttonStyle={styles.dropdownButton}
-                  buttonTextStyle={styles.dropdownButtonText}
-                  dropdownStyle={{ backgroundColor: "#fff" }}
-                  renderButton={(selectedItem) => (
-                    <Text style={styles.dropdownButtonText}>
-                      {selectedItem || "Seleccione un cliente"}
-                    </Text>
-                  )}
+                  value={values.cliente}
+                  onSelect={(item: string) => setFieldValue("cliente", item)}
+                  placeholder="Seleccione un cliente"
+                  error={touched.cliente && errors.cliente}
                 />
 
-                {/* Colores */}
+                {/* ========== COLORES ========== */}
                 <Text style={styles.label}>Colores por lote</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
+                  placeholder="Ej: 3"
                   value={values.colores}
                   onChangeText={handleChange("colores")}
+                  onBlur={handleBlur("colores")}
+                />
+                {touched.colores && errors.colores && (
+                  <Text style={styles.errorText}>{errors.colores}</Text>
+                )}
+
+                {/* ========== TIPO DE PRENDA ========== */}
+                <CustomDropdown
+                  label="Tipo de prenda"
+                  data={opcionesTiposPrenda}
+                  value={values.tipoPrenda}
+                  onSelect={(item: string) => {
+                    setFieldValue("tipoPrenda", item);
+                    setFieldValue("referenciaPrenda", "");
+                    setPrendaSeleccionada(null);
+                  }}
+                  placeholder="Seleccione tipo de prenda"
+                  error={touched.tipoPrenda && errors.tipoPrenda}
                 />
 
-                {/* Tipo de prenda */}
-                <Text style={styles.label}>Tipo de prenda</Text>
-                <SelectDropdown
-                  data={opcionesPrendas}
-                  onSelect={(selectedItem) => setFieldValue("tipoPrenda", selectedItem)}
-                  buttonStyle={styles.dropdownButton}
-                  renderButton={(selectedItem) => (
-                    <Text style={styles.dropdownButtonText}>
-                      {selectedItem || "Seleccione tipo de prenda"}
+                {/* ========== REFERENCIA PRENDA ========== */}
+                <CustomDropdown
+                  label="Referencia prenda"
+                  data={obtenerReferenciasPorTipo(values.tipoPrenda)}
+                  value={values.referenciaPrenda}
+                  onSelect={(item: string) => {
+                    setFieldValue("referenciaPrenda", item);
+                    const prenda = prendas.find((p) => p.referencia === item);
+                    if (prenda) {
+                      setPrendaSeleccionada(prenda);
+                      if (!values.tipoPrenda) {
+                        setFieldValue("tipoPrenda", prenda.tipoPrenda);
+                      }
+                    }
+                  }}
+                  placeholder="Seleccione referencia"
+                  disabled={!values.tipoPrenda}
+                  error={touched.referenciaPrenda && errors.referenciaPrenda}
+                />
+
+                {/* Info de la prenda seleccionada */}
+                {prendaSeleccionada && (
+                  <View style={styles.prendaInfo}>
+                    <Text style={styles.prendaInfoTitle}>📦 Prenda seleccionada:</Text>
+                    <Text style={styles.prendaInfoText}>• Tipo: {prendaSeleccionada.tipoPrenda}</Text>
+                    <Text style={styles.prendaInfoText}>• Marca: {prendaSeleccionada.marca}</Text>
+                    <Text style={styles.prendaInfoText}>
+                      • Precio unitario: ${prendaSeleccionada.precioTotal?.toLocaleString("es-CO")}
                     </Text>
-                  )}
+                  </View>
+                )}
+
+                {/* ========== REFERENCIA LOTE ========== */}
+                <Text style={styles.label}>Referencia del lote</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ej: LOTE-001"
+                  value={values.referenciaLote}
+                  onChangeText={handleChange("referenciaLote")}
+                  onBlur={handleBlur("referenciaLote")}
+                />
+                {touched.referenciaLote && errors.referenciaLote && (
+                  <Text style={styles.errorText}>{errors.referenciaLote}</Text>
+                )}
+
+                {/* ========== INSUMOS ========== */}
+                <Text style={styles.label}>Insumos (opcional)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Botones, hilos, etiquetas..."
+                  value={values.insumos}
+                  onChangeText={handleChange("insumos")}
+                  multiline
                 />
 
-                {/* Referencia */}
-                <Text style={styles.label}>Referencia prenda</Text>
-                <SelectDropdown
-                  data={opcionesReferencias}
-                  onSelect={(selectedItem) => setFieldValue("referenciaPrenda", selectedItem)}
-                  buttonStyle={styles.dropdownButton}
-                  renderButton={(selectedItem) => (
-                    <Text style={styles.dropdownButtonText}>
-                      {selectedItem || "Seleccione referencia"}
-                    </Text>
-                  )}
-                />
-
-                {/* Tallas */}
+                {/* ========== TALLAS ========== */}
+                <Text style={styles.sectionTitle}>Cantidad por talla</Text>
                 {["xs", "s", "m", "l", "xl"].map((talla) => (
                   <View key={talla}>
                     <Text style={styles.label}>{talla.toUpperCase()}</Text>
                     <TextInput
                       style={styles.input}
                       keyboardType="numeric"
-                      value={values[talla]}
+                      placeholder="0"
+                      value={values[talla as keyof typeof values] as string}
                       onChangeText={handleChange(talla)}
                     />
                   </View>
                 ))}
 
-                {/* Totales */}
-                <Text style={styles.label}>Total de prendas: {values.totalPrendas}</Text>
-                <Text style={styles.label}>Total del lote: ${values.totalLote}</Text>
+                {/* ========== TOTALES ========== */}
+                <View style={styles.resumenContainer}>
+                  <Text style={styles.resumenTitle}>📊 Resumen del lote</Text>
+                  <Text style={styles.resumenText}>
+                    Total de prendas: {values.totalPrendas}
+                  </Text>
+                  <Text style={styles.resumenTotal}>
+                    Total del lote: ${values.totalLote.toLocaleString("es-CO")}
+                  </Text>
+                </View>
 
+                {/* ========== BOTÓN GUARDAR ========== */}
                 <Button
                   mode="contained"
                   style={styles.submitButton}

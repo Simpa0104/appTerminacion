@@ -7,26 +7,36 @@ import { Snackbar } from "react-native-paper";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/clientes.styles";
-import { KeyboardAvoidingView } from "react-native";
-import useFetchCollection from "../hooks/useFetchCollection";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 const validationSchema = Yup.object().shape({
   nombreCliente: Yup.string().required("Requerido"),
   empresa: Yup.string().required("Requerido"),
-  celular: Yup.number().required("Requerido"),
-  nit: Yup.number().required("Requerido"),
+  celular: Yup.string().required("Requerido"),
+  nit: Yup.string().required("Requerido"),
   direccionEmpresa: Yup.string().required("Requerido"),
   ciudadEmpresa: Yup.string().required("Requerido"),
 });
 
-export default function Clientes() {
+interface ClientesProps {
+  onSuccess?: () => void;
+}
 
+export default function Clientes({ onSuccess }: ClientesProps) {
   const [visible, setVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Registro de Clientes</Text>
+
         <Formik
           initialValues={{
             nombreCliente: "",
@@ -41,12 +51,19 @@ export default function Clientes() {
             try {
               await addDoc(collection(db, "clientes"), values);
               setMensaje("Cliente guardado correctamente");
+              resetForm();
             } catch (error) {
               console.error("Error guardando cliente:", error);
               setMensaje("Error al guardar cliente");
             } finally {
               setVisible(true);
-              resetForm();
+
+              // Cerrar el modal después de 1.5 segundos
+              setTimeout(() => {
+                if (onSuccess) {
+                  onSuccess();
+                }
+              }, 1500);
             }
           }}
         >
@@ -59,7 +76,7 @@ export default function Clientes() {
             touched,
           }) => (
             <View>
-              <Text style={styles.label}>Nombre Cliente</Text>
+              <Text style={styles.label}>Nombre del Cliente</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Nombre del Cliente"
@@ -74,7 +91,7 @@ export default function Clientes() {
               <Text style={styles.label}>Empresa</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Nombre de la empresa del cliente"
+                placeholder="Nombre de la empresa"
                 value={values.empresa}
                 onChangeText={handleChange("empresa")}
                 onBlur={handleBlur("empresa")}
@@ -83,11 +100,11 @@ export default function Clientes() {
                 <Text style={styles.error}>{errors.empresa}</Text>
               )}
 
-              <Text style={styles.label}>Celular del Cliente</Text>
+              <Text style={styles.label}>Celular</Text>
               <TextInput
                 style={styles.input}
-                keyboardType="numeric"
-                placeholder="Celular del cliente"
+                keyboardType="phone-pad"
+                placeholder="3001234567"
                 value={values.celular}
                 onChangeText={handleChange("celular")}
                 onBlur={handleBlur("celular")}
@@ -100,29 +117,38 @@ export default function Clientes() {
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
-                placeholder="NIT del cliente"
+                placeholder="900123456-7"
                 value={values.nit}
                 onChangeText={handleChange("nit")}
                 onBlur={handleBlur("nit")}
               />
+              {touched.nit && errors.nit && (
+                <Text style={styles.error}>{errors.nit}</Text>
+              )}
 
               <Text style={styles.label}>Dirección de la empresa</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Dirección de la empresa"
+                placeholder="Calle 123 #45-67"
                 value={values.direccionEmpresa}
                 onChangeText={handleChange("direccionEmpresa")}
                 onBlur={handleBlur("direccionEmpresa")}
               />
+              {touched.direccionEmpresa && errors.direccionEmpresa && (
+                <Text style={styles.error}>{errors.direccionEmpresa}</Text>
+              )}
 
-              <Text style={styles.label}>Ciudad de la empresa</Text>
+              <Text style={styles.label}>Ciudad</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Ciudad de la empresa"
+                placeholder="Medellín"
                 value={values.ciudadEmpresa}
                 onChangeText={handleChange("ciudadEmpresa")}
                 onBlur={handleBlur("ciudadEmpresa")}
               />
+              {touched.ciudadEmpresa && errors.ciudadEmpresa && (
+                <Text style={styles.error}>{errors.ciudadEmpresa}</Text>
+              )}
 
               <Button
                 mode="contained"
@@ -146,7 +172,6 @@ export default function Clientes() {
         >
           {mensaje}
         </Snackbar>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );

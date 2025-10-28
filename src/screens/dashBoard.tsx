@@ -1,4 +1,3 @@
-// src/screens/dashBoard.tsx
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, Text, TextInput, SafeAreaView } from "react-native";
 import { Card, Button, Menu, Portal } from "react-native-paper";
@@ -7,9 +6,10 @@ import { db } from "../firebase/firebaseConfig";
 import RegistroLotes from "./registroLotes";
 import RegistroPrendas from "./registroPrendas";
 import Clientes from "./clientes";
-import styles from "../styles/checkOutLotes.styles";
+import styles from "../styles/dashBoard.styles";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
+
 
 export default function CheckOutLotes() {
   const [visibleForm, setVisibleForm] = useState<null | "lotes" | "prendas" | "clientes">(null);
@@ -22,6 +22,12 @@ export default function CheckOutLotes() {
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
       const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Ordenar por fecha de entrada (más reciente primero)
+      lotesData.sort((a, b) => {
+        const dateA = new Date(a.fechaEntrada || 0);
+        const dateB = new Date(b.fechaEntrada || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
       setLotes(lotesData);
       setLoading(false);
     });
@@ -41,21 +47,36 @@ export default function CheckOutLotes() {
     }
   };
 
+  // Función para cerrar el formulario (se pasa a los componentes hijos)
+  const handleCloseForm = () => {
+    setVisibleForm(null);
+  };
+
   const term = search.trim().toLowerCase();
   const lotesFiltrados = lotes.filter((lote) => {
     if (!term) return true;
     return (
       String(lote.cliente || "").toLowerCase().includes(term) ||
-      String(lote.referencia || "").toLowerCase().includes(term) ||
+      String(lote.referenciaLote || "").toLowerCase().includes(term) ||
+      String(lote.referenciaPrenda || "").toLowerCase().includes(term) ||
       String(lote.tipoPrenda || "").toLowerCase().includes(term) ||
-      String(lote.total || "").includes(term)
+      String(lote.totalPrendas || "").includes(term)
     );
   });
 
   const forms: Record<string, { title: string; component: React.ReactNode }> = {
-    lotes: { title: "Registro de lotes", component: <RegistroLotes /> },
-    prendas: { title: "Registro de prendas", component: <RegistroPrendas /> },
-    clientes: { title: "Registro de clientes", component: <Clientes /> },
+    lotes: {
+      title: "Registro de lotes",
+      component: <RegistroLotes onSuccess={handleCloseForm} />
+    },
+    prendas: {
+      title: "Registro de prendas",
+      component: <RegistroPrendas onSuccess={handleCloseForm} />
+    },
+    clientes: {
+      title: "Registro de clientes",
+      component: <Clientes onSuccess={handleCloseForm} />
+    },
   };
 
   return (
@@ -65,13 +86,13 @@ export default function CheckOutLotes() {
         <View style={styles.headerRow}>
           <View style={styles.buttonRow}>
             <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
-              {visibleForm === "lotes" ? "X" : "Agregar Lote"}
+              {visibleForm === "lotes" ? "✕ Cerrar" : "➕ Agregar Lote"}
             </Button>
             <Button mode="contained" onPress={() => toggleForm("prendas")} style={styles.button}>
-              {visibleForm === "prendas" ? "X" : "Agregar Prendas"}
+              {visibleForm === "prendas" ? "✕ Cerrar" : "➕ Agregar Prendas"}
             </Button>
             <Button mode="contained" onPress={() => toggleForm("clientes")} style={styles.button}>
-              {visibleForm === "clientes" ? "X" : "Agregar Clientes"}
+              {visibleForm === "clientes" ? "✕ Cerrar" : "➕ Agregar Clientes"}
             </Button>
           </View>
 
@@ -83,21 +104,57 @@ export default function CheckOutLotes() {
           />
         </View>
 
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{lotes.length}</Text>
+            <Text style={styles.statLabel}>Total Lotes</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>
+              {lotes.filter(l => l.estado === "En proceso").length}
+            </Text>
+            <Text style={styles.statLabel}>En Proceso</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>
+              {lotes.filter(l => l.estado === "Completado").length}
+            </Text>
+            <Text style={styles.statLabel}>Completados</Text>
+          </View>
+        </View>
+
         <Text style={styles.sectionTitle}>Lotes registrados</Text>
 
         {loading ? (
-          <Text>Cargando lotes...</Text>
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>⏳ Cargando lotes...</Text>
+          </View>
         ) : lotesFiltrados.length === 0 ? (
-          <Text>No se encontraron lotes.</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {search ? "🔍 No se encontraron lotes con ese criterio" : "📦 No hay lotes registrados"}
+            </Text>
+            {!search && (
+              <Button
+                mode="contained"
+                onPress={() => toggleForm("lotes")}
+                style={{ marginTop: 10 }}
+              >
+                Crear primer lote
+              </Button>
+            )}
+          </View>
         ) : (
-          // El ScrollView horizontal permite si la tabla necesita más ancho
           <ScrollView horizontal contentContainerStyle={styles.tableScrollContainer} showsHorizontalScrollIndicator>
             <View style={styles.tableContainer}>
               {/* encabezado */}
               <View style={styles.tableHeader}>
-                <Text style={[styles.tableCell, styles.headerText, styles.colReferencia]}>Referencia</Text>
-                <Text style={[styles.tableCell, styles.headerText, styles.colFecha]}>Fecha salida</Text>
-                <Text style={[styles.tableCell, styles.headerText, styles.colTipo]}>Tipo prenda</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colReferencia]}>Ref. Lote</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colCliente]}>Cliente</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colFecha]}>Fecha Salida</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colTipo]}>Tipo Prenda</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colCantidad]}>Cantidad</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colTotal]}>Total</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colEstado]}>Estado</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colAccion]}>Acción</Text>
               </View>
@@ -105,9 +162,24 @@ export default function CheckOutLotes() {
               {/* filas */}
               {lotesFiltrados.map((lote) => (
                 <View key={lote.id} style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colReferencia]}>{lote.referencia}</Text>
-                  <Text style={[styles.tableCell, styles.colFecha]}>{lote.fechaSalida}</Text>
-                  <Text style={[styles.tableCell, styles.colTipo]}>{lote.tipoPrenda}</Text>
+                  <Text style={[styles.tableCell, styles.colReferencia]}>
+                    {lote.referenciaLote || "Sin ref."}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colCliente]}>
+                    {lote.cliente || "Sin cliente"}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colFecha]}>
+                    {lote.fechaSalida || "Sin fecha"}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colTipo]}>
+                    {lote.tipoPrenda || "Sin tipo"}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colCantidad]}>
+                    {lote.totalPrendas || 0}
+                  </Text>
+                  <Text style={[styles.tableCell, styles.colTotal]}>
+                    ${(lote.totalLote || 0).toLocaleString("es-CO")}
+                  </Text>
 
                   <View style={[styles.tableCell, styles.colEstado]}>
                     <Menu
@@ -117,6 +189,11 @@ export default function CheckOutLotes() {
                         <Button
                           mode="outlined"
                           onPress={() => setMenuVisible(menuVisible === lote.id ? null : lote.id)}
+                          style={[
+                            styles.estadoButton,
+                            lote.estado === "Completado" && styles.estadoCompletado,
+                            lote.estado === "En proceso" && styles.estadoProceso,
+                          ]}
                         >
                           {lote.estado || "Recibido"}
                         </Button>
@@ -139,6 +216,7 @@ export default function CheckOutLotes() {
                     <Button
                       mode="text"
                       onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}
+                      style={styles.verDetallesButton}
                     >
                       Ver detalles
                     </Button>
@@ -153,7 +231,10 @@ export default function CheckOutLotes() {
           {visibleForm && (
             <View style={styles.overlay}>
               <Card style={styles.overlayCard}>
-                <Card.Title title={forms[visibleForm].title} />
+                <Card.Title
+                  title={forms[visibleForm].title}
+                  titleStyle={styles.overlayTitle}
+                />
                 <Card.Content style={styles.overlayContent}>
                   <ScrollView
                     showsVerticalScrollIndicator
@@ -163,8 +244,13 @@ export default function CheckOutLotes() {
                   </ScrollView>
                 </Card.Content>
 
-                <Card.Actions style={{ justifyContent: "flex-end" }}>
-                  <Button onPress={() => setVisibleForm(null)}>Cerrar</Button>
+                <Card.Actions style={{ justifyContent: "flex-end", padding: 16 }}>
+                  <Button
+                    onPress={() => setVisibleForm(null)}
+                    mode="outlined"
+                  >
+                    Cerrar
+                  </Button>
                 </Card.Actions>
               </Card>
             </View>

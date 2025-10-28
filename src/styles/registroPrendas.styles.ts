@@ -29,6 +29,7 @@ export default StyleSheet.create({
         color: theme.colors.text.primary,
         fontWeight: "600",
         marginBottom: theme.spacing.xs,
+        marginTop: theme.spacing.sm,
     },
 
     input: {
@@ -38,6 +39,7 @@ export default StyleSheet.create({
         padding: theme.spacing.sm,
         backgroundColor: theme.colors.card,
         marginBottom: theme.spacing.sm,
+        fontSize: 14,
     },
 
     switchRow: {
@@ -45,6 +47,7 @@ export default StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         marginVertical: theme.spacing.sm,
+        paddingVertical: theme.spacing.xs,
     },
 
     optionBlock: {
@@ -54,12 +57,34 @@ export default StyleSheet.create({
         paddingTop: theme.spacing.sm,
     },
 
+    // Estilos para el contenedor del total
+    totalContainer: {
+        marginTop: 20,
+        backgroundColor: "#E8F5E9",
+        padding: 16,
+        borderRadius: 12,
+        alignItems: "center",
+    },
+
+    totalLabel: {
+        fontSize: 14,
+        color: "#2E7D32",
+        marginBottom: 4,
+    },
+
+    totalValue: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#4CAF50",
+    },
+
     submitButton: {
         backgroundColor: theme.colors.primary,
         borderRadius: theme.borderRadius.md,
         paddingVertical: theme.spacing.md,
         alignItems: "center",
         marginTop: theme.spacing.lg,
+        marginBottom: theme.spacing.xl,
     },
 
     submitButtonText: {
@@ -72,5 +97,6 @@ export default StyleSheet.create({
         color: theme.colors.text.error,
         fontSize: theme.fontSize.sm,
         marginBottom: theme.spacing.sm,
+        marginTop: -4,
     },
 });

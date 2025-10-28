@@ -4,39 +4,61 @@ import { theme } from "./theme";
 export default StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        padding: theme.spacing.lg,
+        backgroundColor: theme.colors.background,
     },
-    field: {
-        marginBottom: 16,
+
+    title: {
+        fontSize: theme.fontSize.xl,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.text.primary,
+        textAlign: "center",
+        marginBottom: theme.spacing.lg,
     },
+
     label: {
-        fontSize: 14,
-        marginBottom: 4,
-        fontWeight: "bold",
-        color: "#333",
+        fontSize: theme.fontSize.md,
+        color: theme.colors.text.primary,
+        fontWeight: "600",
+        marginBottom: theme.spacing.xs,
+        marginTop: theme.spacing.sm,
     },
+
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        padding: 10,
-        backgroundColor: "#fff",
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.md,
+        padding: theme.spacing.sm,
+        backgroundColor: theme.colors.card,
+        marginBottom: theme.spacing.sm,
+        fontSize: 14,
     },
+
     submitButton: {
-        marginTop: 20,
-        backgroundColor: "#007AFF",
+        marginTop: theme.spacing.lg,
+        marginBottom: theme.spacing.xl,
+        backgroundColor: theme.colors.primary,
+        borderRadius: theme.borderRadius.md,
     },
+
     error: {
-        color: "red",
-        fontSize: 12,
-        marginTop: 4,
+        color: theme.colors.text.error,
+        fontSize: theme.fontSize.sm,
+        marginTop: -4,
+        marginBottom: theme.spacing.sm,
     },
+
     switchRow: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginVertical: 8,
+        marginVertical: theme.spacing.sm,
     },
+
+    field: {
+        marginBottom: theme.spacing.md,
+    },
+
     form: {
         marginVertical: 10,
     },

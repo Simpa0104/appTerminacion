@@ -19,13 +19,15 @@ const validationSchema = Yup.object().shape({
   tipoPrenda: Yup.string().required("Requerido"),
   marca: Yup.string().required("Requerido"),
   referencia: Yup.string().required("Requerido"),
-  precioUnitario: Yup.number().required("Requerido").positive("Debe ser positivo"),
 });
 
-export default function RegistroPrendas() {
+interface RegistroPrendasProps {
+  onSuccess?: () => void;
+}
+
+export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
   const [visible, setVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  const [tieneAdiciones, setTieneAdiciones] = useState(false);
   const [precioTotal, setPrecioTotal] = useState(0);
 
   return (
@@ -36,7 +38,6 @@ export default function RegistroPrendas() {
             tipoPrenda: "",
             marca: "",
             referencia: "",
-            precioUnitario: "",
             precioAbotonar: "",
             cantidadBotones: "",
             pulir: false,
@@ -58,7 +59,6 @@ export default function RegistroPrendas() {
               // Convertir precios a número antes de guardar
               const parsedValues = {
                 ...values,
-                precioUnitario: parseFloat(values.precioUnitario) || 0,
                 precioAbotonar: parseFloat(values.precioAbotonar) || 0,
                 precioPulir: parseFloat(values.precioPulir) || 0,
                 precioPlanchar: parseFloat(values.precioPlanchar) || 0,
@@ -72,13 +72,19 @@ export default function RegistroPrendas() {
 
               await addDoc(collection(db, "prendas"), parsedValues);
               setMensaje("Prenda guardada correctamente");
+              resetForm();
+              setPrecioTotal(0);
             } catch (error) {
               console.error("Error guardando la prenda:", error);
               setMensaje("Error al guardar la prenda");
             } finally {
               setVisible(true);
-              resetForm();
-              setPrecioTotal(0);
+
+              setTimeout(() => {
+                if (onSuccess) {
+                  onSuccess();
+                }
+              }, 1500);
             }
           }}
         >
@@ -93,31 +99,31 @@ export default function RegistroPrendas() {
           }) => {
             // 🔹 Recalcular total en tiempo real
             useEffect(() => {
-              let total = parseFloat(values.precioUnitario) || 0;
+              let total = 0;
 
-              if (tieneAdiciones) {
-                if (values.precioAbotonar && values.cantidadBotones) {
-                  total +=
-                    parseFloat(values.precioAbotonar) *
-                    parseInt(values.cantidadBotones);
-                }
-
-                [
-                  { key: "pulir", precio: "precioPulir" },
-                  { key: "planchar", precio: "precioPlanchar" },
-                  { key: "etiquetar", precio: "precioEtiquetar" },
-                  { key: "placa", precio: "precioPlaca" },
-                  { key: "doblar", precio: "precioDoblar" },
-                  { key: "empacar", precio: "precioempacar" },
-                ].forEach((item) => {
-                  if (values[item.key as keyof typeof values]) {
-                    total += parseFloat(values[item.precio as keyof typeof values]) || 0;
-                  }
-                });
+              // Sumar precio por abotonar
+              if (values.precioAbotonar && values.cantidadBotones) {
+                total +=
+                  parseFloat(values.precioAbotonar) *
+                  parseInt(values.cantidadBotones);
               }
 
+              // Sumar todas las opciones activas
+              [
+                { key: "pulir", precio: "precioPulir" },
+                { key: "planchar", precio: "precioPlanchar" },
+                { key: "etiquetar", precio: "precioEtiquetar" },
+                { key: "placa", precio: "precioPlaca" },
+                { key: "doblar", precio: "precioDoblar" },
+                { key: "empacar", precio: "precioempacar" },
+              ].forEach((item) => {
+                if (values[item.key as keyof typeof values]) {
+                  total += parseFloat(values[item.precio as keyof typeof values] as string) || 0;
+                }
+              });
+
               setPrecioTotal(total);
-            }, [values, tieneAdiciones]);
+            }, [values]);
 
             return (
               <View>
@@ -160,84 +166,62 @@ export default function RegistroPrendas() {
                   <Text style={styles.error}>{errors.referencia}</Text>
                 )}
 
-                {/* === PRECIO UNITARIO === */}
-                <Text style={styles.sectionTitle}>Precio por prenda</Text>
+                {/* === PROCESOS Y PRECIOS === */}
+                <Text style={styles.sectionTitle}>Procesos y costos</Text>
+
+                {/* ABOTONAR */}
+                <Text style={styles.label}>Precio por abotonar (por botón)</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
-                  placeholder="Ejemplo: 1500"
-                  value={values.precioUnitario.toString()}
-                  onChangeText={(text) => setFieldValue("precioUnitario", text)}
+                  placeholder="Ej: 500"
+                  onChangeText={handleChange("precioAbotonar")}
+                  value={values.precioAbotonar}
                 />
-                {touched.precioUnitario && errors.precioUnitario && (
-                  <Text style={styles.error}>{errors.precioUnitario}</Text>
-                )}
 
-                {/* === ADICIONES === */}
-                <View style={styles.switchRow}>
-                  <Text style={styles.label}>¿Tendrá adiciones?</Text>
-                  <Switch
-                    value={tieneAdiciones}
-                    onValueChange={setTieneAdiciones}
-                  />
-                </View>
+                <Text style={styles.label}>Cantidad de botones</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  placeholder="Ej: 6"
+                  onChangeText={handleChange("cantidadBotones")}
+                  value={values.cantidadBotones}
+                />
 
-                {tieneAdiciones && (
-                  <>
-                    <Text style={styles.sectionTitle}>Opciones adicionales</Text>
-
-                    {/* ABOTONAR */}
-                    <Text style={styles.label}>Precio por abotonar</Text>
-                    <TextInput
-                      style={styles.input}
-                      keyboardType="numeric"
-                      onChangeText={handleChange("precioAbotonar")}
-                      value={values.precioAbotonar}
-                    />
-
-                    <Text style={styles.label}>Cantidad de botones</Text>
-                    <TextInput
-                      style={styles.input}
-                      keyboardType="numeric"
-                      onChangeText={handleChange("cantidadBotones")}
-                      value={values.cantidadBotones}
-                    />
-
-                    {/* === OPCIONES BOOLEANAS === */}
-                    {[
-                      { key: "pulir", label: "¿Se debe pulir?", precio: "precioPulir" },
-                      { key: "planchar", label: "¿Se debe planchar?", precio: "precioPlanchar" },
-                      { key: "etiquetar", label: "¿Se debe etiquetar?", precio: "precioEtiquetar" },
-                      { key: "placa", label: "¿Se debe colocar placa?", precio: "precioPlaca" },
-                      { key: "doblar", label: "¿Se debe doblar?", precio: "precioDoblar" },
-                      { key: "empacar", label: "¿Se debe empacar?", precio: "precioempacar" },
-                    ].map((item) => (
-                      <View key={item.key} style={styles.optionBlock}>
-                        <View style={styles.switchRow}>
-                          <Text style={styles.label}>{item.label}</Text>
-                          <Switch
-                            value={values[item.key as keyof typeof values] as boolean}
-                            onValueChange={(val) => setFieldValue(item.key, val)}
-                          />
-                        </View>
-                        {values[item.key as keyof typeof values] && (
-                          <TextInput
-                            style={styles.input}
-                            placeholder="Precio adicional"
-                            keyboardType="numeric"
-                            onChangeText={handleChange(item.precio)}
-                            value={values[item.precio as keyof typeof values] as string}
-                          />
-                        )}
-                      </View>
-                    ))}
-                  </>
-                )}
+                {/* === OPCIONES CON SWITCH === */}
+                {[
+                  { key: "pulir", label: "¿Se debe pulir?", precio: "precioPulir" },
+                  { key: "planchar", label: "¿Se debe planchar?", precio: "precioPlanchar" },
+                  { key: "etiquetar", label: "¿Se debe etiquetar?", precio: "precioEtiquetar" },
+                  { key: "placa", label: "¿Se debe colocar placa?", precio: "precioPlaca" },
+                  { key: "doblar", label: "¿Se debe doblar?", precio: "precioDoblar" },
+                  { key: "empacar", label: "¿Se debe empacar?", precio: "precioempacar" },
+                ].map((item) => (
+                  <View key={item.key} style={styles.optionBlock}>
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>{item.label}</Text>
+                      <Switch
+                        value={values[item.key as keyof typeof values] as boolean}
+                        onValueChange={(val) => setFieldValue(item.key, val)}
+                      />
+                    </View>
+                    {values[item.key as keyof typeof values] && (
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Precio adicional"
+                        keyboardType="numeric"
+                        onChangeText={handleChange(item.precio)}
+                        value={values[item.precio as keyof typeof values] as string}
+                      />
+                    )}
+                  </View>
+                ))}
 
                 {/* === TOTAL === */}
-                <View style={{ marginTop: 20, alignItems: "center" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                    💰 Precio total: ${precioTotal.toLocaleString("es-CO")}
+                <View style={styles.totalContainer}>
+                  <Text style={styles.totalLabel}>💰 Precio total por prenda:</Text>
+                  <Text style={styles.totalValue}>
+                    ${precioTotal.toLocaleString("es-CO")}
                   </Text>
                 </View>
 
