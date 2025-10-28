@@ -4,7 +4,6 @@ import { View, Text, ScrollView } from "react-native";
 import { Button, Card, Chip } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import styles from "../styles/loteDetalles.styles";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function LoteDetalles() {
   const navigation = useNavigation();
@@ -17,7 +16,6 @@ export default function LoteDetalles() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Card style={styles.card}>
             <View style={styles.emptyState}>
-              <MaterialCommunityIcons name="alert-circle-outline" size={64} color="#999" />
               <Text style={styles.emptyText}>No hay datos del lote</Text>
               <Button
                 mode="contained"
@@ -46,6 +44,15 @@ export default function LoteDetalles() {
     }
   };
 
+  const getEstadoEmoji = (estado: string) => {
+    switch (estado) {
+      case "Completado":
+      case "En proceso":
+      case "Recibido":
+      default:
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -53,7 +60,9 @@ export default function LoteDetalles() {
         <Card style={styles.headerCard}>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.headerTitle}>Lote #{lote.referenciaLote || "Sin referencia"}</Text>
+              <Text style={styles.headerTitle}>
+                Lote #{lote.referenciaLote || "Sin referencia"}
+              </Text>
               <Text style={styles.headerSubtitle}>{lote.cliente || "Sin cliente"}</Text>
             </View>
             <Chip
@@ -61,15 +70,14 @@ export default function LoteDetalles() {
               style={[styles.estadoChip, { backgroundColor: getEstadoColor(lote.estado) }]}
               textStyle={{ color: "#fff", fontWeight: "bold" }}
             >
-              {lote.estado || "Recibido"}
+              {getEstadoEmoji(lote.estado)} {lote.estado || "Recibido"}
             </Chip>
           </View>
         </Card>
 
         {/* Información general */}
         <Card style={styles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <MaterialCommunityIcons name="information-outline" size={20} color="#333" style={{ marginRight: 8 }} />
+          <View style={styles.cardHeader}>
             <Text style={styles.sectionTitle}>Información General</Text>
           </View>
 
@@ -90,7 +98,7 @@ export default function LoteDetalles() {
               <Text style={styles.infoValue}>{lote.referenciaPrenda || "Sin ref."}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Colores</Text>
+              <Text style={styles.infoLabel}>Total colores</Text>
               <Text style={styles.infoValue}>{lote.colores || 0}</Text>
             </View>
           </View>
@@ -98,59 +106,133 @@ export default function LoteDetalles() {
 
         {/* Fechas */}
         <Card style={styles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <MaterialCommunityIcons name="calendar-range" size={20} color="#333" style={{ marginRight: 8 }} />
+          <View style={styles.cardHeader}>
             <Text style={styles.sectionTitle}>Fechas</Text>
           </View>
 
           <View style={styles.dateContainer}>
             <View style={styles.dateBox}>
-              <MaterialCommunityIcons name="calendar-import" size={24} color="#2196F3" />
               <Text style={styles.dateLabel}>Entrada</Text>
               <Text style={styles.dateValue}>{lote.fechaEntrada || "Sin fecha"}</Text>
             </View>
-            <MaterialCommunityIcons name="arrow-right" size={24} color="#999" />
+            <Text style={styles.dateArrow}>→</Text>
             <View style={styles.dateBox}>
-              <MaterialCommunityIcons name="calendar-export" size={24} color="#4CAF50" />
               <Text style={styles.dateLabel}>Salida</Text>
               <Text style={styles.dateValue}>{lote.fechaSalida || "Sin fecha"}</Text>
             </View>
           </View>
         </Card>
 
-        {/* Tallas */}
-        <Card style={styles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <MaterialCommunityIcons name="hanger" size={20} color="#333" style={{ marginRight: 8 }} />
-            <Text style={styles.sectionTitle}>Distribución por tallas</Text>
-          </View>
+        {/* Colores y cantidades */}
+        {lote.cantidadesPorColor && lote.cantidadesPorColor.length > 0 && (
+          <Card style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Distribución por color</Text>
+            </View>
 
-          <View style={styles.sizeContainer}>
-            {["xs", "s", "m", "l", "xl"].map((talla) => (
-              <View key={talla} style={styles.sizeBox}>
-                <Text style={styles.sizeLabel}>{talla.toUpperCase()}</Text>
-                <Text style={styles.sizeValue}>{lote[talla] || 0}</Text>
-              </View>
-            ))}
-          </View>
-        </Card>
+            {lote.cantidadesPorColor.map((color: any, index: number) => {
+              const totalColor =
+                Number(color.xs || 0) +
+                Number(color.s || 0) +
+                Number(color.m || 0) +
+                Number(color.l || 0) +
+                Number(color.xl || 0);
+
+              return (
+                <View key={index} style={styles.colorCard}>
+                  <View style={styles.colorHeader}>
+                    <Text style={styles.colorName}>🔵 {color.nombreColor}</Text>
+                    <Text style={styles.colorTotal}>{totalColor} prendas</Text>
+                  </View>
+
+                  <View style={styles.colorSizesContainer}>
+                    {["xs", "s", "m", "l", "xl"].map((talla) => {
+                      const cantidad = Number(color[talla] || 0);
+                      if (cantidad === 0) return null;
+                      
+                      return (
+                        <View key={talla} style={styles.colorSizeBox}>
+                          <Text style={styles.colorSizeLabel}>{talla.toUpperCase()}</Text>
+                          <Text style={styles.colorSizeValue}>{cantidad}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
+          </Card>
+        )}
+
+        {/* Tallas totales (si no hay cantidadesPorColor) */}
+        {(!lote.cantidadesPorColor || lote.cantidadesPorColor.length === 0) && (
+          <Card style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Distribución por tallas</Text>
+            </View>
+
+            <View style={styles.sizeContainer}>
+              {["xs", "s", "m", "l", "xl"].map((talla) => (
+                <View key={talla} style={styles.sizeBox}>
+                  <Text style={styles.sizeLabel}>{talla.toUpperCase()}</Text>
+                  <Text style={styles.sizeValue}>{lote[talla] || 0}</Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+        )}
 
         {/* Resumen de costos */}
         <Card style={styles.card}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-            <MaterialCommunityIcons name="calculator" size={20} color="#333" style={{ marginRight: 8 }} />
+          <View style={styles.cardHeader}>
             <Text style={styles.sectionTitle}>Resumen de costos</Text>
           </View>
 
+          {/* Total de prendas */}
           <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Total de prendas:</Text>
+            <Text style={styles.costLabel}>Total de prendas</Text>
             <Text style={styles.costValue}>{lote.totalPrendas || 0} unidades</Text>
           </View>
 
+          {/* Procesos */}
+          {lote.procesos && lote.procesos.length > 0 && (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.procesosTitle}>Costos por proceso</Text>
+              
+              {lote.procesos.map((proceso: any, index: number) => (
+                <View key={index} style={styles.procesoRow}>
+                  <View style={styles.procesoInfo}>
+                    <Text style={styles.procesoNombre}>{proceso.nombre}</Text>
+                    {proceso.proveedor && (
+                      <Text style={styles.procesoProveedor}>
+                        {proceso.proveedor}
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={styles.procesoCosto}>
+                    ${(proceso.costo || 0).toLocaleString("es-CO")}
+                  </Text>
+                </View>
+              ))}
+
+              {/* Total de procesos */}
+              <View style={styles.procesoTotal}>
+                <Text style={styles.procesoTotalLabel}>Subtotal procesos</Text>
+                <Text style={styles.procesoTotalValue}>
+                  ${lote.procesos
+                    .reduce((sum: number, p: any) => sum + (Number(p.costo) || 0), 0)
+                    .toLocaleString("es-CO")}
+                </Text>
+              </View>
+            </>
+          )}
+
           <View style={styles.divider} />
 
+          {/* Total del lote */}
           <View style={styles.costRow}>
-            <Text style={styles.costLabelTotal}>Total del lote:</Text>
+            <Text style={styles.costLabelTotal}>Total del lote</Text>
             <Text style={styles.costValueTotal}>
               ${(lote.totalLote || 0).toLocaleString("es-CO")}
             </Text>
@@ -160,8 +242,7 @@ export default function LoteDetalles() {
         {/* Insumos */}
         {lote.insumos && (
           <Card style={styles.card}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-              <MaterialCommunityIcons name="package-variant" size={20} color="#333" style={{ marginRight: 8 }} />
+            <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>Insumos</Text>
             </View>
             <Text style={styles.insumosText}>{lote.insumos}</Text>
@@ -172,15 +253,13 @@ export default function LoteDetalles() {
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
-            icon="arrow-left"
             style={styles.secondaryButton}
             onPress={() => navigation.goBack()}
           >
-            Volver
+            ← Volver
           </Button>
           <Button
             mode="contained"
-            icon="printer"
             style={styles.primaryButton}
             onPress={() => {
               console.log("Imprimir lote:", lote);

@@ -51,7 +51,7 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
             doblar: false,
             precioDoblar: "",
             empacar: false,
-            precioempacar: "",
+            precioEmpacar: "", // Corregido: precioEmpacar con E mayúscula
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { resetForm }) => {
@@ -65,7 +65,7 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 precioEtiquetar: parseFloat(values.precioEtiquetar) || 0,
                 precioPlaca: parseFloat(values.precioPlaca) || 0,
                 precioDoblar: parseFloat(values.precioDoblar) || 0,
-                precioempacar: parseFloat(values.precioempacar) || 0,
+                precioEmpacar: parseFloat(values.precioEmpacar) || 0,
                 cantidadBotones: parseInt(values.cantidadBotones) || 0,
                 precioTotal,
               };
@@ -115,7 +115,7 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 { key: "etiquetar", precio: "precioEtiquetar" },
                 { key: "placa", precio: "precioPlaca" },
                 { key: "doblar", precio: "precioDoblar" },
-                { key: "empacar", precio: "precioempacar" },
+                { key: "empacar", precio: "precioEmpacar" }, // Corregido
               ].forEach((item) => {
                 if (values[item.key as keyof typeof values]) {
                   total += parseFloat(values[item.precio as keyof typeof values] as string) || 0;
@@ -157,7 +157,7 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 <Text style={styles.label}>Referencia</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Referencia"
+                  placeholder="Referencia única"
                   onChangeText={handleChange("referencia")}
                   onBlur={handleBlur("referencia")}
                   value={values.referencia}
@@ -170,32 +170,44 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 <Text style={styles.sectionTitle}>Procesos y costos</Text>
 
                 {/* ABOTONAR */}
-                <Text style={styles.label}>Precio por abotonar (por botón)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  placeholder="Ej: 500"
-                  onChangeText={handleChange("precioAbotonar")}
-                  value={values.precioAbotonar}
-                />
+                <View style={styles.processCard}>
+                  <Text style={styles.processTitle}>Abotonar</Text>
+                  
+                  <Text style={styles.label}>Precio por botón</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    placeholder="Ej: 500"
+                    onChangeText={handleChange("precioAbotonar")}
+                    value={values.precioAbotonar}
+                  />
 
-                <Text style={styles.label}>Cantidad de botones</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  placeholder="Ej: 6"
-                  onChangeText={handleChange("cantidadBotones")}
-                  value={values.cantidadBotones}
-                />
+                  <Text style={styles.label}>Cantidad de botones</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    placeholder="Ej: 6"
+                    onChangeText={handleChange("cantidadBotones")}
+                    value={values.cantidadBotones}
+                  />
+                  
+                  {values.precioAbotonar && values.cantidadBotones && (
+                    <View style={styles.subtotalBox}>
+                      <Text style={styles.subtotalText}>
+                        Subtotal: ${(parseFloat(values.precioAbotonar) * parseInt(values.cantidadBotones)).toLocaleString("es-CO")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
 
                 {/* === OPCIONES CON SWITCH === */}
                 {[
-                  { key: "pulir", label: "¿Se debe pulir?", precio: "precioPulir" },
-                  { key: "planchar", label: "¿Se debe planchar?", precio: "precioPlanchar" },
-                  { key: "etiquetar", label: "¿Se debe etiquetar?", precio: "precioEtiquetar" },
-                  { key: "placa", label: "¿Se debe colocar placa?", precio: "precioPlaca" },
-                  { key: "doblar", label: "¿Se debe doblar?", precio: "precioDoblar" },
-                  { key: "empacar", label: "¿Se debe empacar?", precio: "precioempacar" },
+                  { key: "pulir", label: "Pulir", precio: "precioPulir"},
+                  { key: "planchar", label: "Planchar", precio: "precioPlanchar"},
+                  { key: "etiquetar", label: "Etiquetar", precio: "precioEtiquetar"},
+                  { key: "placa", label: "Colocar placa", precio: "precioPlaca"},
+                  { key: "doblar", label: "Doblar", precio: "precioDoblar"},
+                  { key: "empacar", label: "Empacar", precio: "precioEmpacar"}, // Corregido
                 ].map((item) => (
                   <View key={item.key} style={styles.optionBlock}>
                     <View style={styles.switchRow}>
@@ -206,22 +218,34 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                       />
                     </View>
                     {values[item.key as keyof typeof values] && (
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Precio adicional"
-                        keyboardType="numeric"
-                        onChangeText={handleChange(item.precio)}
-                        value={values[item.precio as keyof typeof values] as string}
-                      />
+                      <>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Precio del proceso"
+                          keyboardType="numeric"
+                          onChangeText={handleChange(item.precio)}
+                          value={values[item.precio as keyof typeof values] as string}
+                        />
+                        {values[item.precio as keyof typeof values] && (
+                          <View style={styles.subtotalBox}>
+                            <Text style={styles.subtotalText}>
+                              Costo: ${parseFloat(values[item.precio as keyof typeof values] as string || "0").toLocaleString("es-CO")}
+                            </Text>
+                          </View>
+                        )}
+                      </>
                     )}
                   </View>
                 ))}
 
                 {/* === TOTAL === */}
                 <View style={styles.totalContainer}>
-                  <Text style={styles.totalLabel}>💰 Precio total por prenda:</Text>
+                  <Text style={styles.totalLabel}>Costo total de procesos por prenda</Text>
                   <Text style={styles.totalValue}>
                     ${precioTotal.toLocaleString("es-CO")}
+                  </Text>
+                  <Text style={styles.totalNote}>
+                    Este costo se aplicará a cada prenda del lote
                   </Text>
                 </View>
 

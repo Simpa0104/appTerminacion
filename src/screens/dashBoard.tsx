@@ -11,7 +11,7 @@ import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
 
 
-export default function CheckOutLotes() {
+export default function Dashboard() {
   const [visibleForm, setVisibleForm] = useState<null | "lotes" | "prendas" | "clientes">(null);
   const [lotes, setLotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,13 +86,13 @@ export default function CheckOutLotes() {
         <View style={styles.headerRow}>
           <View style={styles.buttonRow}>
             <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
-              {visibleForm === "lotes" ? "✕ Cerrar" : "➕ Agregar Lote"}
+              {visibleForm === "lotes" ? "✕ Cerrar" : "Agregar Lote"}
             </Button>
             <Button mode="contained" onPress={() => toggleForm("prendas")} style={styles.button}>
-              {visibleForm === "prendas" ? "✕ Cerrar" : "➕ Agregar Prendas"}
+              {visibleForm === "prendas" ? "✕ Cerrar" : "Agregar Prendas"}
             </Button>
             <Button mode="contained" onPress={() => toggleForm("clientes")} style={styles.button}>
-              {visibleForm === "clientes" ? "✕ Cerrar" : "➕ Agregar Clientes"}
+              {visibleForm === "clientes" ? "✕ Cerrar" : "Agregar Clientes"}
             </Button>
           </View>
 
@@ -132,7 +132,7 @@ export default function CheckOutLotes() {
         ) : lotesFiltrados.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {search ? "🔍 No se encontraron lotes con ese criterio" : "📦 No hay lotes registrados"}
+              {search ? "No se encontraron lotes con ese criterio" : "No hay lotes registrados"}
             </Text>
             {!search && (
               <Button
@@ -147,7 +147,6 @@ export default function CheckOutLotes() {
         ) : (
           <ScrollView horizontal contentContainerStyle={styles.tableScrollContainer} showsHorizontalScrollIndicator>
             <View style={styles.tableContainer}>
-              {/* encabezado */}
               <View style={styles.tableHeader}>
                 <Text style={[styles.tableCell, styles.headerText, styles.colReferencia]}>Ref. Lote</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colCliente]}>Cliente</Text>
@@ -159,7 +158,6 @@ export default function CheckOutLotes() {
                 <Text style={[styles.tableCell, styles.headerText, styles.colAccion]}>Acción</Text>
               </View>
 
-              {/* filas */}
               {lotesFiltrados.map((lote) => (
                 <View key={lote.id} style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.colReferencia]}>

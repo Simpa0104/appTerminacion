@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { View, ScrollView, Text, TextInput, Modal, TouchableOpacity } from "react-native";
-import { Card, Button, IconButton, Portal, Dialog } from "react-native-paper";
+import React, { useState, useEffect, useRef } from "react";
+import { View, ScrollView, Text, TextInput, Modal, TouchableOpacity, KeyboardAvoidingView } from "react-native";
+import { Card, Button, Portal, Dialog } from "react-native-paper";
 import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import useFetchCollection from "../hooks/useFetchCollection";
 import RegistroPrendas from "./registroPrendas";
 import styles from "../styles/historialPrendas.styles";
 import Layout from "../components/layout";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function HistorialPrendas() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -17,6 +17,16 @@ export default function HistorialPrendas() {
   const [prendaAEliminar, setPrendaAEliminar] = useState<any>(null);
 
   const { data: prendas, loading } = useFetchCollection("prendas");
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Hacer scroll al inicio cuando se abre el modal de edición
+  useEffect(() => {
+    if (prendaEditando && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      }, 300);
+    }
+  }, [prendaEditando]);
 
   // Filtrar prendas
   const term = search.trim().toLowerCase();
@@ -67,11 +77,10 @@ export default function HistorialPrendas() {
   return (
     <Layout title="Historial de Prendas" scrollable>
       <View style={styles.container}>
-        {/* Encabezado con botones */}
+        {/* Encabezado */}
         <View style={styles.headerRow}>
           <Button
             mode="contained"
-            icon={mostrarFormulario ? "close" : "plus"}
             onPress={() => setMostrarFormulario(!mostrarFormulario)}
             style={styles.addButton}
           >
@@ -110,13 +119,13 @@ export default function HistorialPrendas() {
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>⏳ Cargando prendas...</Text>
+            <Text style={styles.loadingText}>Cargando prendas...</Text>
           </View>
         ) : prendasFiltradas.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialCommunityIcons name="hanger" size={64} color="#999" />
             <Text style={styles.emptyText}>
-              {search ? "🔍 No se encontraron prendas" : "📦 No hay prendas registradas"}
+              {search ? "No se encontraron prendas" : "No hay prendas registradas"}
             </Text>
             {!search && (
               <Button
@@ -164,20 +173,16 @@ export default function HistorialPrendas() {
                   <Text style={[styles.tableCell, styles.colTotal, styles.totalText]}>
                     ${(prenda.precioTotal || 0).toLocaleString("es-CO")}
                   </Text>
+
+                  {/* ✅ Reemplazo de íconos por texto */}
                   <View style={[styles.tableCell, styles.colAcciones]}>
                     <View style={styles.accionesRow}>
-                      <IconButton
-                        icon="pencil"
-                        size={20}
-                        onPress={() => iniciarEdicion(prenda)}
-                        iconColor="#007AFF"
-                      />
-                      <IconButton
-                        icon="delete"
-                        size={20}
-                        onPress={() => confirmarEliminacion(prenda)}
-                        iconColor="#FF3B30"
-                      />
+                      <TouchableOpacity onPress={() => iniciarEdicion(prenda)}>
+                        <Text style={{ color: "#007AFF", marginRight: 10 }}>Editar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => confirmarEliminacion(prenda)}>
+                        <Text style={{ color: "#FF3B30" }}>Eliminar</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
@@ -186,7 +191,7 @@ export default function HistorialPrendas() {
           </ScrollView>
         )}
 
-        {/* Modal para agregar prenda */}
+        {/* Modal de agregar */}
         <Portal>
           {mostrarFormulario && (
             <View style={styles.overlay}>
@@ -205,7 +210,8 @@ export default function HistorialPrendas() {
           )}
         </Portal>
 
-        {/* Modal para editar prenda */}
+        {/* Modal de edición */}
+        
         <Modal
           visible={!!prendaEditando}
           transparent
@@ -213,75 +219,88 @@ export default function HistorialPrendas() {
           onRequestClose={() => setPrendaEditando(null)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Editar Prenda</Text>
-                <IconButton
-                  icon="close"
-                  size={24}
-                  onPress={() => setPrendaEditando(null)}
-                />
+            <KeyboardAvoidingView
+              behavior="padding"
+              style={{ flex: 1, width: "100%" }}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Editar Prenda</Text>
+                  <TouchableOpacity onPress={() => setPrendaEditando(null)}>
+                    <Text style={{ color: "#FF3B30", fontWeight: "bold" }}>Cerrar</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* 🔹 ScrollView para todo el formulario */}
+                <ScrollView
+                  ref={scrollRef}
+                  style={styles.modalBody}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {prendaEditando && (
+                    <>
+                      <Text style={styles.label}>Tipo de prenda</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={prendaEditando.tipoPrenda}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, tipoPrenda: text })
+                        }
+                      />
+
+                      <Text style={styles.label}>Marca</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={prendaEditando.marca}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, marca: text })
+                        }
+                      />
+
+                      <Text style={styles.label}>Referencia</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={prendaEditando.referencia}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, referencia: text })
+                        }
+                      />
+
+                      <Text style={styles.label}>Cantidad de botones</Text>
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        value={String(prendaEditando.cantidadBotones || 0)}
+                        onChangeText={(text) =>
+                          setPrendaEditando({
+                            ...prendaEditando,
+                            cantidadBotones: parseInt(text) || 0,
+                          })
+                        }
+                      />
+
+                      {/* Aquí puedes seguir añadiendo más campos si los deseas editar */}
+                    </>
+                  )}
+                </ScrollView>
+
+                <View style={styles.modalActions}>
+                  <Button mode="outlined" onPress={() => setPrendaEditando(null)}>
+                    Cancelar
+                  </Button>
+                  <Button mode="contained" onPress={guardarEdicion}>
+                    Guardar
+                  </Button>
+                </View>
               </View>
-
-              <ScrollView style={styles.modalBody}>
-                {prendaEditando && (
-                  <>
-                    <Text style={styles.label}>Tipo de prenda</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={prendaEditando.tipoPrenda}
-                      onChangeText={(text) =>
-                        setPrendaEditando({ ...prendaEditando, tipoPrenda: text })
-                      }
-                    />
-
-                    <Text style={styles.label}>Marca</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={prendaEditando.marca}
-                      onChangeText={(text) =>
-                        setPrendaEditando({ ...prendaEditando, marca: text })
-                      }
-                    />
-
-                    <Text style={styles.label}>Referencia</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={prendaEditando.referencia}
-                      onChangeText={(text) =>
-                        setPrendaEditando({ ...prendaEditando, referencia: text })
-                      }
-                    />
-
-                    <Text style={styles.label}>Cantidad de botones</Text>
-                    <TextInput
-                      style={styles.input}
-                      keyboardType="numeric"
-                      value={String(prendaEditando.cantidadBotones || 0)}
-                      onChangeText={(text) =>
-                        setPrendaEditando({
-                          ...prendaEditando,
-                          cantidadBotones: parseInt(text) || 0,
-                        })
-                      }
-                    />
-                  </>
-                )}
-              </ScrollView>
-
-              <View style={styles.modalActions}>
-                <Button mode="outlined" onPress={() => setPrendaEditando(null)}>
-                  Cancelar
-                </Button>
-                <Button mode="contained" onPress={guardarEdicion}>
-                  Guardar
-                </Button>
-              </View>
-            </View>
+            </KeyboardAvoidingView>
           </View>
         </Modal>
 
-        {/* Diálogo de confirmación para eliminar */}
+
+
+        {/* Diálogo eliminar */}
         <Portal>
           <Dialog
             visible={mostrarDialogoEliminar}

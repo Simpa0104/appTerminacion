@@ -1,6 +1,5 @@
 // src/styles/loteDetalles.styles.ts
 import { StyleSheet } from "react-native";
-import { theme } from "./theme";
 
 export default StyleSheet.create({
   container: {
@@ -9,7 +8,7 @@ export default StyleSheet.create({
   },
 
   scrollContent: {
-    padding: theme.spacing.lg,
+    padding: 20,
     paddingBottom: 40,
   },
 
@@ -19,20 +18,28 @@ export default StyleSheet.create({
     padding: 40,
   },
 
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+
   emptyText: {
     fontSize: 18,
     color: "#666",
-    marginTop: 16,
     marginBottom: 24,
   },
 
   // Encabezado con estado
   headerCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    ...theme.shadow.card,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   headerContent: {
@@ -42,15 +49,15 @@ export default StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: theme.colors.text.primary,
-    marginBottom: 4,
+    color: "#333",
+    marginBottom: 6,
   },
 
   headerSubtitle: {
     fontSize: 16,
-    color: theme.colors.text.secondary,
+    color: "#666",
   },
 
   estadoChip: {
@@ -59,25 +66,39 @@ export default StyleSheet.create({
 
   // Cards de secciones
   card: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    ...theme.shadow.card,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  cardHeaderIcon: {
+    fontSize: 22,
+    marginRight: 8,
   },
 
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: theme.colors.text.primary,
-    marginBottom: 0,
+    color: "#333",
   },
 
   // Información general
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: theme.spacing.md,
+    marginBottom: 16,
   },
 
   infoItem: {
@@ -86,15 +107,14 @@ export default StyleSheet.create({
 
   infoLabel: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
+    color: "#666",
     marginBottom: 4,
-    textTransform: "uppercase",
     fontWeight: "600",
   },
 
   infoValue: {
     fontSize: 16,
-    color: theme.colors.text.primary,
+    color: "#333",
     fontWeight: "500",
   },
 
@@ -108,26 +128,99 @@ export default StyleSheet.create({
   dateBox: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: "#F5F7FA",
+    padding: 16,
+    borderRadius: 12,
+  },
+
+  dateIcon: {
+    fontSize: 28,
+    marginBottom: 4,
   },
 
   dateLabel: {
     fontSize: 12,
-    color: theme.colors.text.secondary,
+    color: "#666",
     marginTop: 4,
     fontWeight: "600",
   },
 
   dateValue: {
     fontSize: 14,
-    color: theme.colors.text.primary,
+    color: "#333",
     marginTop: 4,
     fontWeight: "500",
   },
 
-  // Tallas
+  dateArrow: {
+    fontSize: 24,
+    color: "#999",
+    marginHorizontal: 12,
+  },
+
+  // Colores
+  colorCard: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+
+  colorHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  colorName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#333",
+  },
+
+  colorTotal: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4F46E5",
+    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  colorSizesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  colorSizeBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 60,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+
+  colorSizeLabel: {
+    fontSize: 12,
+    color: "#666",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+
+  colorSizeValue: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "bold",
+  },
+
+  // Tallas (vista antigua)
   sizeContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -137,10 +230,10 @@ export default StyleSheet.create({
   sizeBox: {
     width: "18%",
     backgroundColor: "#E3F2FD",
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    borderRadius: 12,
+    padding: 12,
     alignItems: "center",
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
 
   sizeLabel: {
@@ -152,7 +245,7 @@ export default StyleSheet.create({
 
   sizeValue: {
     fontSize: 20,
-    color: theme.colors.text.primary,
+    color: "#333",
     fontWeight: "bold",
   },
 
@@ -161,23 +254,23 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
 
   costLabel: {
     fontSize: 14,
-    color: theme.colors.text.secondary,
+    color: "#666",
   },
 
   costValue: {
     fontSize: 14,
-    color: theme.colors.text.primary,
+    color: "#333",
     fontWeight: "500",
   },
 
   costLabelTotal: {
     fontSize: 18,
-    color: theme.colors.text.primary,
+    color: "#333",
     fontWeight: "700",
   },
 
@@ -190,13 +283,75 @@ export default StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#E0E0E0",
-    marginVertical: theme.spacing.md,
+    marginVertical: 16,
+  },
+
+  // Procesos
+  procesosTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#333",
+    marginBottom: 12,
+  },
+
+  procesoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+
+  procesoInfo: {
+    flex: 1,
+  },
+
+  procesoNombre: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 2,
+  },
+
+  procesoProveedor: {
+    fontSize: 12,
+    color: "#666",
+  },
+
+  procesoCosto: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+
+  procesoTotal: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#EEF2FF",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+
+  procesoTotalLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#4F46E5",
+  },
+
+  procesoTotalValue: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#4F46E5",
   },
 
   // Insumos
   insumosText: {
     fontSize: 14,
-    color: theme.colors.text.primary,
+    color: "#333",
     lineHeight: 20,
   },
 
@@ -204,24 +359,24 @@ export default StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: theme.spacing.lg,
+    marginTop: 20,
     gap: 12,
   },
 
   primaryButton: {
     flex: 1,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: "#007bff",
+    borderRadius: 12,
   },
 
   secondaryButton: {
     flex: 1,
-    borderColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.md,
+    borderColor: "#007bff",
+    borderRadius: 12,
   },
 
   backButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: "#007bff",
+    borderRadius: 12,
   },
 });

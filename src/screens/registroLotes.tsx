@@ -157,6 +157,14 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
             m: "",
             l: "",
             xl: "",
+            cantidadesPorColor: [] as Array<{
+              nombreColor: string;
+              xs: string;
+              s: string;
+              m: string;
+              l: string;
+              xl: string;
+            }>,
             totalPrendas: 0,
             totalLote: 0,
           }}
@@ -186,32 +194,51 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched }) => {
-            // 🧮 Cálculo automático de totales
+            // Actualizar array de colores cuando cambia la cantidad
+            useEffect(() => {
+              const numColores = Number(values.colores) || 0;
+              const coloresActuales = values.cantidadesPorColor.length;
+
+              if (numColores !== coloresActuales) {
+                const nuevosColores = Array.from({ length: numColores }, (_, i) => {
+                  if (i < coloresActuales) {
+                    return values.cantidadesPorColor[i];
+                  }
+                  return {
+                    nombreColor: `Color ${i + 1}`,
+                    xs: "",
+                    s: "",
+                    m: "",
+                    l: "",
+                    xl: "",
+                  };
+                });
+                setFieldValue("cantidadesPorColor", nuevosColores);
+              }
+            }, [values.colores]);
+
+            // Cálculo automático de totales
             useEffect(() => {
               const parseNum = (val: any) => (isNaN(val) || val === "" ? 0 : Number(val));
 
-              const totalTallas =
-                parseNum(values.xs) +
-                parseNum(values.s) +
-                parseNum(values.m) +
-                parseNum(values.l) +
-                parseNum(values.xl);
+              let totalPrendas = 0;
 
-              const totalPrendas = totalTallas * parseNum(values.colores);
+              // Sumar todas las cantidades de todos los colores
+              values.cantidadesPorColor.forEach((color) => {
+                totalPrendas +=
+                  parseNum(color.xs) +
+                  parseNum(color.s) +
+                  parseNum(color.m) +
+                  parseNum(color.l) +
+                  parseNum(color.xl);
+              });
+
               const precioUnitario = prendaSeleccionada ? parseNum(prendaSeleccionada.precioTotal) : 0;
               const totalLote = totalPrendas * precioUnitario;
 
               setFieldValue("totalPrendas", totalPrendas);
               setFieldValue("totalLote", totalLote);
-            }, [
-              values.xs,
-              values.s,
-              values.m,
-              values.l,
-              values.xl,
-              values.colores,
-              prendaSeleccionada,
-            ]);
+            }, [values.cantidadesPorColor, prendaSeleccionada]);
 
             return (
               <View>
@@ -274,7 +301,7 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                 />
 
                 {/* ========== COLORES ========== */}
-                <Text style={styles.label}>Colores por lote</Text>
+                <Text style={styles.label}>Cantidad de colores en el lote</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
@@ -356,24 +383,90 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   multiline
                 />
 
-                {/* ========== TALLAS ========== */}
-                <Text style={styles.sectionTitle}>Cantidad por talla</Text>
-                {["xs", "s", "m", "l", "xl"].map((talla) => (
-                  <View key={talla}>
-                    <Text style={styles.label}>{talla.toUpperCase()}</Text>
-                    <TextInput
-                      style={styles.input}
-                      keyboardType="numeric"
-                      placeholder="0"
-                      value={values[talla as keyof typeof values] as string}
-                      onChangeText={handleChange(talla)}
-                    />
-                  </View>
-                ))}
+                {/* ========== CANTIDADES POR COLOR ========== */}
+                {values.cantidadesPorColor.length > 0 && (
+                  <>
+                    <Text style={styles.sectionTitle}>Cantidades por color y talla</Text>
+                    {values.cantidadesPorColor.map((color, colorIndex) => {
+                      const totalColor =
+                        Number(color.xs || 0) +
+                        Number(color.s || 0) +
+                        Number(color.m || 0) +
+                        Number(color.l || 0) +
+                        Number(color.xl || 0);
+
+                      return (
+                        <View
+                          key={colorIndex}
+                          style={{
+                            backgroundColor: "#F9FAFB",
+                            padding: 15,
+                            borderRadius: 12,
+                            marginBottom: 16,
+                            borderWidth: 1,
+                            borderColor: "#E5E7EB",
+                          }}
+                        >
+                          {/* Nombre del color */}
+                          <Text style={styles.label}>Nombre del color {colorIndex + 1}</Text>
+                          <TextInput
+                            style={styles.input}
+                            placeholder={`Ej: Azul, Rojo, Verde...`}
+                            value={color.nombreColor}
+                            onChangeText={(text) => {
+                              const nuevosColores = [...values.cantidadesPorColor];
+                              nuevosColores[colorIndex].nombreColor = text;
+                              setFieldValue("cantidadesPorColor", nuevosColores);
+                            }}
+                          />
+
+                          {/* Tallas para este color */}
+                          <View style={{ marginTop: 10 }}>
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: "#666", marginBottom: 8 }}>
+                              Cantidades por talla:
+                            </Text>
+                            {["xs", "s", "m", "l", "xl"].map((talla) => (
+                              <View key={talla} style={{ marginBottom: 8 }}>
+                                <Text style={[styles.label, { marginTop: 4 }]}>
+                                  {talla.toUpperCase()}
+                                </Text>
+                                <TextInput
+                                  style={styles.input}
+                                  keyboardType="numeric"
+                                  placeholder="0"
+                                  value={color[talla as keyof typeof color] as string}
+                                  onChangeText={(text) => {
+                                    const nuevosColores = [...values.cantidadesPorColor];
+                                    nuevosColores[colorIndex][talla as keyof typeof color] = text as any;
+                                    setFieldValue("cantidadesPorColor", nuevosColores);
+                                  }}
+                                />
+                              </View>
+                            ))}
+                          </View>
+
+                          {/* Total del color */}
+                          <View
+                            style={{
+                              backgroundColor: "#EEF2FF",
+                              padding: 10,
+                              borderRadius: 8,
+                              marginTop: 10,
+                            }}
+                          >
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: "#4F46E5" }}>
+                              Total {color.nombreColor}: {totalColor} prendas
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </>
+                )}
 
                 {/* ========== TOTALES ========== */}
                 <View style={styles.resumenContainer}>
-                  <Text style={styles.resumenTitle}>📊 Resumen del lote</Text>
+                  <Text style={styles.resumenTitle}>Resumen del lote</Text>
                   <Text style={styles.resumenText}>
                     Total de prendas: {values.totalPrendas}
                   </Text>

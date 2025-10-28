@@ -4,10 +4,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
-
-import CheckOutLotes from "./src/screens/dashBoard";
+import DashBoard from "./src/screens/dashBoard";
 import LoteDetalles from "./src/screens/LoteDetalles";
-import Facturacion from "./src/screens/facturacion";
 import HistorialPrendas from "./src/screens/historialPrendas";
 
 const Tab = createBottomTabNavigator();
@@ -28,9 +26,8 @@ const paperTheme = {
 function TabNavigator() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="CheckOutLotes" component={CheckOutLotes} />
+      <Tab.Screen name="DashBoard" component={DashBoard} />
       <Tab.Screen name="HistorialPrendas" component={HistorialPrendas} />
-      <Tab.Screen name="Facturación" component={Facturacion} />
     </Tab.Navigator>
   );
 }
