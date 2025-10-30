@@ -7,6 +7,7 @@ import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
 import DashBoard from "./src/screens/dashBoard";
 import LoteDetalles from "./src/screens/LoteDetalles";
 import HistorialPrendas from "./src/screens/historialPrendas";
+import HistorialLotes from "./src/screens/historialLotes";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -28,6 +29,7 @@ function TabNavigator() {
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="DashBoard" component={DashBoard} />
       <Tab.Screen name="HistorialPrendas" component={HistorialPrendas} />
+      <Tab.Screen name="HistorialLotes" component={HistorialLotes} />
     </Tab.Navigator>
   );
 }

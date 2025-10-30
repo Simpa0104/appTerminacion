@@ -22,13 +22,15 @@ export default function Dashboard() {
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
       const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Filtrar solo lotes que NO estén completados
+      const lotesFiltradosEstado = lotesData.filter(lote => lote.estado !== "Completado");
       // Ordenar por fecha de entrada (más reciente primero)
-      lotesData.sort((a, b) => {
+      lotesFiltradosEstado.sort((a, b) => {
         const dateA = new Date(a.fechaEntrada || 0);
         const dateB = new Date(b.fechaEntrada || 0);
         return dateB.getTime() - dateA.getTime();
       });
-      setLotes(lotesData);
+      setLotes(lotesFiltradosEstado);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -82,27 +84,26 @@ export default function Dashboard() {
   return (
     <Layout title="Dashboard" scrollable>
       <SafeAreaView style={styles.container}>
-        {/* header row: botones + search */}
-        <View style={styles.headerRow}>
-          <View style={styles.buttonRow}>
-            <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
-              {visibleForm === "lotes" ? "✕ Cerrar" : "Agregar Lote"}
-            </Button>
-            <Button mode="contained" onPress={() => toggleForm("prendas")} style={styles.button}>
-              {visibleForm === "prendas" ? "✕ Cerrar" : "Agregar Prendas"}
-            </Button>
-            <Button mode="contained" onPress={() => toggleForm("clientes")} style={styles.button}>
-              {visibleForm === "clientes" ? "✕ Cerrar" : "Agregar Clientes"}
-            </Button>
-          </View>
-
-          <TextInput
-            style={styles.searchBar}
-            placeholder="Buscar por cliente, referencia, tipo o cantidad..."
-            value={search}
-            onChangeText={setSearch}
-          />
+        {/* Botones */}
+        <View style={styles.buttonRow}>
+          <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
+            {visibleForm === "lotes" ? "✕ Cerrar" : "Agregar Lote"}
+          </Button>
+          <Button mode="contained" onPress={() => toggleForm("prendas")} style={styles.button}>
+            {visibleForm === "prendas" ? "✕ Cerrar" : "Agregar Prendas"}
+          </Button>
+          <Button mode="contained" onPress={() => toggleForm("clientes")} style={styles.button}>
+            {visibleForm === "clientes" ? "✕ Cerrar" : "Agregar Clientes"}
+          </Button>
         </View>
+
+        {/* Barra de búsqueda debajo de los botones */}
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Buscar por cliente, referencia, tipo o cantidad..."
+          value={search}
+          onChangeText={setSearch}
+        />
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -127,7 +128,7 @@ export default function Dashboard() {
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>⏳ Cargando lotes...</Text>
+            <Text style={styles.loadingText}>Cargando lotes...</Text>
           </View>
         ) : lotesFiltrados.length === 0 ? (
           <View style={styles.emptyContainer}>

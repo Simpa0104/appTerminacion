@@ -53,7 +53,7 @@ const CustomDropdown = ({
         <Text style={[styles.dropdownButtonText, !value && { color: "#999" }]}>
           {value || placeholder}
         </Text>
-        <MaterialCommunityIcons name="chevron-down" size={20} color="#666" />
+        <Text>⇩</Text>
       </TouchableOpacity>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -73,7 +73,7 @@ const CustomDropdown = ({
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{label}</Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
-                <MaterialCommunityIcons name="close" size={24} color="#333" />
+                <Text>⇩</Text>
               </TouchableOpacity>
             </View>
 
@@ -249,7 +249,7 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   onPress={() => setMostrarPickerEntrada(true)}
                 >
                   <Text>{values.fechaEntrada}</Text>
-                  <MaterialCommunityIcons name="calendar" size={20} />
+                  <Text>⬗</Text>
                 </TouchableOpacity>
                 {mostrarPickerEntrada && (
                   <DateTimePicker
@@ -273,7 +273,7 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   onPress={() => setMostrarPickerSalida(true)}
                 >
                   <Text>{values.fechaSalida}</Text>
-                  <MaterialCommunityIcons name="calendar" size={20} />
+                  <Text>⬗</Text>
                 </TouchableOpacity>
                 {mostrarPickerSalida && (
                   <DateTimePicker

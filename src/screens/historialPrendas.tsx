@@ -298,8 +298,6 @@ export default function HistorialPrendas() {
           </View>
         </Modal>
 
-
-
         {/* Diálogo eliminar */}
         <Portal>
           <Dialog
