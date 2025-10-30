@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -16,9 +17,9 @@ import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroPrendas.styles";
 
 const validationSchema = Yup.object().shape({
-  tipoPrenda: Yup.string().required("Requerido"),
-  marca: Yup.string().required("Requerido"),
-  referencia: Yup.string().required("Requerido"),
+  tipoPrenda: Yup.string().required("Campo requerido"),
+  marca: Yup.string().required("Campo requerido"),
+  referencia: Yup.string().required("Campo requerido"),
 });
 
 interface RegistroPrendasProps {
@@ -31,8 +32,11 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
   const [precioTotal, setPrecioTotal] = useState(0);
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-      <ScrollView style={styles.form} showsVerticalScrollIndicator>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.container}
+    >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <Formik
           initialValues={{
             tipoPrenda: "",
@@ -51,12 +55,11 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
             doblar: false,
             precioDoblar: "",
             empacar: false,
-            precioEmpacar: "", // Corregido: precioEmpacar con E mayúscula
+            precioEmpacar: "",
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { resetForm }) => {
             try {
-              // Convertir precios a número antes de guardar
               const parsedValues = {
                 ...values,
                 precioAbotonar: parseFloat(values.precioAbotonar) || 0,
@@ -71,19 +74,16 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
               };
 
               await addDoc(collection(db, "prendas"), parsedValues);
-              setMensaje("Prenda guardada correctamente");
+              setMensaje("✅ Prenda guardada correctamente");
               resetForm();
               setPrecioTotal(0);
             } catch (error) {
               console.error("Error guardando la prenda:", error);
-              setMensaje("Error al guardar la prenda");
+              setMensaje("❌ Error al guardar la prenda");
             } finally {
               setVisible(true);
-
               setTimeout(() => {
-                if (onSuccess) {
-                  onSuccess();
-                }
+                onSuccess?.();
               }, 1500);
             }
           }}
@@ -97,31 +97,29 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
             touched,
             setFieldValue,
           }) => {
-            // 🔹 Recalcular total en tiempo real
+            // Recalcular total
             useEffect(() => {
               let total = 0;
-
-              // Sumar precio por abotonar
               if (values.precioAbotonar && values.cantidadBotones) {
                 total +=
                   parseFloat(values.precioAbotonar) *
                   parseInt(values.cantidadBotones);
               }
-
-              // Sumar todas las opciones activas
               [
                 { key: "pulir", precio: "precioPulir" },
                 { key: "planchar", precio: "precioPlanchar" },
                 { key: "etiquetar", precio: "precioEtiquetar" },
                 { key: "placa", precio: "precioPlaca" },
                 { key: "doblar", precio: "precioDoblar" },
-                { key: "empacar", precio: "precioEmpacar" }, // Corregido
+                { key: "empacar", precio: "precioEmpacar" },
               ].forEach((item) => {
                 if (values[item.key as keyof typeof values]) {
-                  total += parseFloat(values[item.precio as keyof typeof values] as string) || 0;
+                  total +=
+                    parseFloat(
+                      values[item.precio as keyof typeof values] as string
+                    ) || 0;
                 }
               });
-
               setPrecioTotal(total);
             }, [values]);
 
@@ -129,11 +127,11 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
               <View>
                 <Text style={styles.title}>Registro de Prendas</Text>
 
-                {/* === CAMPOS BASE === */}
+                {/* CAMPOS BASE */}
                 <Text style={styles.label}>Tipo de prenda</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Camisa, pantalón, etc."
+                  placeholder="Ej: Camisa, Pantalón..."
                   onChangeText={handleChange("tipoPrenda")}
                   onBlur={handleBlur("tipoPrenda")}
                   value={values.tipoPrenda}
@@ -145,7 +143,7 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 <Text style={styles.label}>Marca</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Polo, Nike, etc."
+                  placeholder="Ej: Nike, Polo..."
                   onChangeText={handleChange("marca")}
                   onBlur={handleBlur("marca")}
                   value={values.marca}
@@ -166,48 +164,36 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                   <Text style={styles.error}>{errors.referencia}</Text>
                 )}
 
-                {/* === PROCESOS Y PRECIOS === */}
-                <Text style={styles.sectionTitle}>Procesos y costos</Text>
+                {/* PROCESOS */}
+                <Text style={styles.sectionTitle}>Procesos y Costos</Text>
 
                 {/* ABOTONAR */}
-                <View style={styles.processCard}>
-                  <Text style={styles.processTitle}>Abotonar</Text>
-                  
-                  <Text style={styles.label}>Precio por botón</Text>
+                <View style={styles.card}>
+                  <Text style={styles.subtitle}>Abotonar</Text>
                   <TextInput
                     style={styles.input}
                     keyboardType="numeric"
-                    placeholder="Ej: 500"
+                    placeholder="Precio por botón"
                     onChangeText={handleChange("precioAbotonar")}
                     value={values.precioAbotonar}
                   />
-
-                  <Text style={styles.label}>Cantidad de botones</Text>
                   <TextInput
                     style={styles.input}
                     keyboardType="numeric"
-                    placeholder="Ej: 6"
+                    placeholder="Cantidad de botones"
                     onChangeText={handleChange("cantidadBotones")}
                     value={values.cantidadBotones}
                   />
-                  
-                  {values.precioAbotonar && values.cantidadBotones && (
-                    <View style={styles.subtotalBox}>
-                      <Text style={styles.subtotalText}>
-                        Subtotal: ${(parseFloat(values.precioAbotonar) * parseInt(values.cantidadBotones)).toLocaleString("es-CO")}
-                      </Text>
-                    </View>
-                  )}
                 </View>
 
-                {/* === OPCIONES CON SWITCH === */}
+                {/* OPCIONES CON SWITCH */}
                 {[
-                  { key: "pulir", label: "Pulir", precio: "precioPulir"},
-                  { key: "planchar", label: "Planchar", precio: "precioPlanchar"},
-                  { key: "etiquetar", label: "Etiquetar", precio: "precioEtiquetar"},
-                  { key: "placa", label: "Colocar placa", precio: "precioPlaca"},
-                  { key: "doblar", label: "Doblar", precio: "precioDoblar"},
-                  { key: "empacar", label: "Empacar", precio: "precioEmpacar"}, // Corregido
+                  { key: "pulir", label: "Pulir", precio: "precioPulir" },
+                  { key: "planchar", label: "Planchar", precio: "precioPlanchar" },
+                  { key: "etiquetar", label: "Etiquetar", precio: "precioEtiquetar" },
+                  { key: "placa", label: "Colocar placa", precio: "precioPlaca" },
+                  { key: "doblar", label: "Doblar", precio: "precioDoblar" },
+                  { key: "empacar", label: "Empacar", precio: "precioEmpacar" },
                 ].map((item) => (
                   <View key={item.key} style={styles.optionBlock}>
                     <View style={styles.switchRow}>
@@ -218,43 +204,32 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                       />
                     </View>
                     {values[item.key as keyof typeof values] && (
-                      <>
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Precio del proceso"
-                          keyboardType="numeric"
-                          onChangeText={handleChange(item.precio)}
-                          value={values[item.precio as keyof typeof values] as string}
-                        />
-                        {values[item.precio as keyof typeof values] && (
-                          <View style={styles.subtotalBox}>
-                            <Text style={styles.subtotalText}>
-                              Costo: ${parseFloat(values[item.precio as keyof typeof values] as string || "0").toLocaleString("es-CO")}
-                            </Text>
-                          </View>
-                        )}
-                      </>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Precio del proceso"
+                        keyboardType="numeric"
+                        onChangeText={handleChange(item.precio)}
+                        value={
+                          values[item.precio as keyof typeof values] as string
+                        }
+                      />
                     )}
                   </View>
                 ))}
 
-                {/* === TOTAL === */}
+                {/* TOTAL */}
                 <View style={styles.totalContainer}>
-                  <Text style={styles.totalLabel}>Costo total de procesos por prenda</Text>
+                  <Text style={styles.totalLabel}>Costo total:</Text>
                   <Text style={styles.totalValue}>
                     ${precioTotal.toLocaleString("es-CO")}
                   </Text>
-                  <Text style={styles.totalNote}>
-                    Este costo se aplicará a cada prenda del lote
-                  </Text>
                 </View>
 
-                {/* === BOTÓN GUARDAR === */}
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleSubmit as any}
                 >
-                  <Text style={styles.submitButtonText}>Guardar prenda</Text>
+                  <Text style={styles.submitButtonText}>Guardar Prenda</Text>
                 </TouchableOpacity>
               </View>
             );

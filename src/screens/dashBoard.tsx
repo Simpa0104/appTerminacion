@@ -112,15 +112,15 @@ export default function Dashboard() {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>
-              {lotes.filter(l => l.estado === "En proceso").length}
+              {lotes.filter(l => l.estado === "Recibido").length}
             </Text>
-            <Text style={styles.statLabel}>En Proceso</Text>
+            <Text style={styles.statLabel}>Recibidos</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>
-              {lotes.filter(l => l.estado === "Completado").length}
+              {lotes.filter(l => l.estado === "En proceso").length}
             </Text>
-            <Text style={styles.statLabel}>Completados</Text>
+            <Text style={styles.statLabel}>En Proceso</Text>
           </View>
         </View>
 
@@ -194,7 +194,7 @@ export default function Dashboard() {
                             lote.estado === "En proceso" && styles.estadoProceso,
                           ]}
                         >
-                          {lote.estado || "Recibido"}
+                          {lote.estado || "Recibido" && styles.estadoRecibido}
                         </Button>
                       }
                     >

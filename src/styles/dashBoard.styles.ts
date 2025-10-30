@@ -25,15 +25,16 @@ export default StyleSheet.create({
     backgroundColor: "#007AFF",
   },
 
+  // barra de búsqueda
   searchBar: {
-    flex: 1,
-    marginLeft: 10,
+    margin: 10,
     backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 12,
     height: 40,
+    marginBottom: 16,
   },
 
   // Tarjetas de estadísticas
@@ -184,6 +185,11 @@ export default StyleSheet.create({
 
   estadoProceso: {
     borderColor: "#FF9800",
+    backgroundColor: "#FFF3E0",
+  },
+
+  estadoRecibido: {
+    borderColor: "#FF5722",
     backgroundColor: "#FFF3E0",
   },
 
