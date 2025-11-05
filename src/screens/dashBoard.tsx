@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, TextInput, SafeAreaView } from "react-native";
+import { View, ScrollView, Text, TextInput } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Button, Menu, Portal } from "react-native-paper";
 import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";

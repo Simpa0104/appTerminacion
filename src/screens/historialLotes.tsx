@@ -1,8 +1,8 @@
-// src/screens/HistorialLotes.tsx
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, TextInput, SafeAreaView, Alert, TouchableOpacity } from "react-native";
-import { Button } from "react-native-paper";
-import { collection, onSnapshot, doc, deleteDoc } from "firebase/firestore";
+import { View, ScrollView, Text, TextInput, TouchableOpacity } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button, Menu, Portal, Dialog } from "react-native-paper";
+import { collection, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/historialLotes.styles";
 import Layout from "../components/layout";
@@ -12,6 +12,9 @@ export default function HistorialLotes() {
     const [lotes, setLotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [menuVisible, setMenuVisible] = useState<string | null>(null);
+    const [dialogoEliminar, setDialogoEliminar] = useState(false);
+    const [loteAEliminar, setLoteAEliminar] = useState<any>(null);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -31,31 +34,32 @@ export default function HistorialLotes() {
         return () => unsubscribe();
     }, []);
 
-    const eliminarLote = (id: string, referencia: string) => {
-        Alert.alert(
-            "Confirmar eliminación",
-            `¿Estás seguro de eliminar permanentemente el lote "${referencia}"? Esta acción no se puede deshacer.`,
-            [
-                {
-                    text: "Cancelar",
-                    style: "cancel",
-                },
-                {
-                    text: "Eliminar",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await deleteDoc(doc(db, "lotes", id));
-                            setLotes((prev) => prev.filter(l => l.id !== id));
-                            Alert.alert("Éxito", "Lote eliminado permanentemente");
-                        } catch (err) {
-                            console.error("Error eliminando lote:", err);
-                            Alert.alert("Error", "No se pudo eliminar el lote");
-                        }
-                    },
-                },
-            ]
-        );
+    const actualizarEstado = async (id: string, nuevoEstado: string) => {
+        try {
+            await updateDoc(doc(db, "lotes", id), { estado: nuevoEstado });
+            setLotes((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)));
+        } catch (err) {
+            console.error("Error actualizando estado:", err);
+        }
+    };
+
+    const confirmarEliminacion = (lote: any) => {
+        setLoteAEliminar(lote);
+        setDialogoEliminar(true);
+    };
+
+    const eliminarLote = async () => {
+        if (!loteAEliminar) return;
+
+        try {
+            await deleteDoc(doc(db, "lotes", loteAEliminar.id));
+            setLotes((prev) => prev.filter(l => l.id !== loteAEliminar.id));
+            setDialogoEliminar(false);
+            setLoteAEliminar(null);
+        } catch (err) {
+            console.error("Error eliminando lote:", err);
+            alert("Error al eliminar el lote");
+        }
     };
 
     const term = search.trim().toLowerCase();
@@ -83,7 +87,7 @@ export default function HistorialLotes() {
                     onChangeText={setSearch}
                 />
 
-                {/* Estadísticas del historial - Solo 2 tarjetas */}
+                {/* Estadísticas del historial */}
                 <View style={styles.statsRow}>
                     <View style={styles.statCard}>
                         <Text style={styles.statNumber}>{lotes.length}</Text>
@@ -91,7 +95,7 @@ export default function HistorialLotes() {
                     </View>
                     <View style={styles.statCard}>
                         <Text style={styles.statNumber}>
-                            ${(totalIngresoHistorial / 1000000).toFixed(1)}M
+                            ${Math.floor(totalIngresoHistorial / 1000)}K
                         </Text>
                         <Text style={styles.statLabel}>Ingresos Totales</Text>
                     </View>
@@ -108,10 +112,10 @@ export default function HistorialLotes() {
                         <Text style={styles.emptyText}>
                             {search
                                 ? "No se encontraron lotes con ese criterio"
-                                : "No hay lotes completados aún"}
+                                : "No hay lotes completados aun"}
                         </Text>
                         <Text style={[styles.emptyText, { fontSize: 14, marginTop: 10 }]}>
-                            Los lotes aparecerán aquí cuando cambies su estado a "Completado"
+                            Los lotes apareceran aqui cuando cambies su estado a Completado
                         </Text>
                     </View>
                 ) : (
@@ -124,6 +128,7 @@ export default function HistorialLotes() {
                                 <Text style={[styles.tableCell, styles.headerText, styles.colTipo]}>Tipo Prenda</Text>
                                 <Text style={[styles.tableCell, styles.headerText, styles.colCantidad]}>Cantidad</Text>
                                 <Text style={[styles.tableCell, styles.headerText, styles.colTotal]}>Total</Text>
+                                <Text style={[styles.tableCell, styles.headerText, styles.colEstado]}>Estado</Text>
                                 <Text style={[styles.tableCell, styles.headerText, styles.colAcciones]}>Acciones</Text>
                             </View>
 
@@ -148,17 +153,50 @@ export default function HistorialLotes() {
                                         ${(lote.totalLote || 0).toLocaleString("es-CO")}
                                     </Text>
 
+                                    {/* Estado con dropdown */}
+                                    <View style={[styles.tableCell, styles.colEstado]}>
+                                        <Menu
+                                            visible={menuVisible === lote.id}
+                                            onDismiss={() => setMenuVisible(null)}
+                                            anchor={
+                                                <Button
+                                                    mode="outlined"
+                                                    onPress={() => setMenuVisible(menuVisible === lote.id ? null : lote.id)}
+                                                    style={[
+                                                        styles.estadoButton,
+                                                        lote.estado === "Completado" && styles.estadoCompletado,
+                                                        lote.estado === "En proceso" && styles.estadoProceso,
+                                                    ]}
+                                                >
+                                                    {lote.estado || "Completado"}
+                                                </Button>
+                                            }
+                                        >
+                                            {["Recibido", "En proceso", "Completado"].map((estado) => (
+                                                <Menu.Item
+                                                    key={estado}
+                                                    onPress={() => {
+                                                        actualizarEstado(lote.id, estado);
+                                                        setMenuVisible(null);
+                                                    }}
+                                                    title={estado}
+                                                />
+                                            ))}
+                                        </Menu>
+                                    </View>
+
+                                    {/* Acciones */}
                                     <View style={[styles.tableCell, styles.colAcciones]}>
                                         <View style={styles.accionesRow}>
                                             <TouchableOpacity
                                                 onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}
                                             >
-                                                <Text style={{ color: "#007AFF", marginRight: 10 }}>Ver</Text>
+                                                <Text style={styles.verButton}>Ver</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity
-                                                onPress={() => eliminarLote(lote.id, lote.referenciaLote)}
+                                                onPress={() => confirmarEliminacion(lote)}
                                             >
-                                                <Text style={{ color: "#FF3B30" }}>Eliminar</Text>
+                                                <Text style={styles.eliminarButton}>Eliminar</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -167,6 +205,31 @@ export default function HistorialLotes() {
                         </View>
                     </ScrollView>
                 )}
+
+                {/* Diálogo de confirmación de eliminación */}
+                <Portal>
+                    <Dialog
+                        visible={dialogoEliminar}
+                        onDismiss={() => setDialogoEliminar(false)}
+                    >
+                        <Dialog.Title>Confirmar eliminacion</Dialog.Title>
+                        <Dialog.Content>
+                            <Text>
+                                Estas seguro de eliminar permanentemente el lote{" "}
+                                <Text style={{ fontWeight: "bold" }}>
+                                    {loteAEliminar?.referenciaLote}
+                                </Text>
+                                ? Esta accion no se puede deshacer.
+                            </Text>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={() => setDialogoEliminar(false)}>Cancelar</Button>
+                            <Button onPress={eliminarLote} textColor="#FF3B30">
+                                Eliminar
+                            </Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
             </SafeAreaView>
         </Layout>
     );

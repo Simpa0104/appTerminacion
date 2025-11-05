@@ -2,9 +2,9 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
     container: {
-        flex: 1,
         padding: 16,
-        backgroundColor: "#f2f2f2",
+        flex: 1,
+        backgroundColor: "#f4f4f4",
     },
 
     searchBar: {
@@ -42,7 +42,7 @@ export default StyleSheet.create({
     statNumber: {
         fontSize: 24,
         fontWeight: "bold",
-        color: "#007AFF",
+        color: "#4CAF50",
         marginBottom: 4,
     },
 
@@ -81,7 +81,6 @@ export default StyleSheet.create({
         fontSize: 16,
         color: "#666",
         textAlign: "center",
-        marginVertical: 12,
     },
 
     // Tabla
@@ -90,7 +89,7 @@ export default StyleSheet.create({
     },
 
     tableContainer: {
-        minWidth: 1100,
+        minWidth: 1200,
     },
 
     tableHeader: {
@@ -106,12 +105,13 @@ export default StyleSheet.create({
         backgroundColor: "#fff",
         borderBottomWidth: 1,
         borderColor: "#e6e6e6",
-        paddingVertical: 16,
+        paddingVertical: 18,
         alignItems: "center",
     },
 
     tableCell: {
         paddingHorizontal: 10,
+        textAlign: "center",
         justifyContent: "center",
     },
 
@@ -139,22 +139,51 @@ export default StyleSheet.create({
 
     colCantidad: {
         width: 100,
-        textAlign: "center",
     },
 
     colTotal: {
         width: 130,
-        fontWeight: "bold",
-        color: "#4CAF50",
-        fontSize: 14,
+        fontWeight: "600",
     },
 
-    colAcciones: {
+    colEstado: {
         width: 140,
     },
 
+    colAcciones: {
+        width: 150,
+    },
+
+    // Botones de estado
+    estadoButton: {
+        minWidth: 120,
+    },
+
+    estadoCompletado: {
+        borderColor: "#4CAF50",
+        backgroundColor: "#E8F5E9",
+    },
+
+    estadoProceso: {
+        borderColor: "#FF9800",
+        backgroundColor: "#FFF3E0",
+    },
+
+    // Acciones
     accionesRow: {
         flexDirection: "row",
         justifyContent: "center",
+        gap: 10,
+    },
+
+    verButton: {
+        color: "#007AFF",
+        fontWeight: "600",
+        marginRight: 10,
+    },
+
+    eliminarButton: {
+        color: "#FF3B30",
+        fontWeight: "600",
     },
 });

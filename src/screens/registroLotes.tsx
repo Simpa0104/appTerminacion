@@ -18,7 +18,6 @@ import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroLotes.styles";
 import useFetchCollection from "../hooks/useFetchCollection";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const validationSchema = Yup.object().shape({
   fechaEntrada: Yup.string().required("Requerido"),
@@ -30,7 +29,6 @@ const validationSchema = Yup.object().shape({
   referenciaPrenda: Yup.string().required("Requerido"),
 });
 
-// Componente Dropdown personalizado
 const CustomDropdown = ({
   label,
   data,
@@ -123,14 +121,12 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
     );
   }
 
-  // Opciones para los dropdowns
   const opcionesClientes = [
     ...new Set(clientes.map((item) => item.nombreCliente || item.cliente)),
   ].filter(Boolean);
 
   const opcionesTiposPrenda = [...new Set(prendas.map((item) => item.tipoPrenda))].filter(Boolean);
 
-  // Función para obtener referencias filtradas por tipo
   const obtenerReferenciasPorTipo = (tipoPrenda: string) => {
     if (!tipoPrenda) return prendas.map((p) => p.referencia).filter(Boolean);
     return prendas
@@ -179,7 +175,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
               setPrendaSeleccionada(null);
               resetForm();
 
-              // Cerrar el modal después de 1.5 segundos
               setTimeout(() => {
                 if (onSuccess) {
                   onSuccess();
@@ -194,7 +189,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched }) => {
-            // Actualizar array de colores cuando cambia la cantidad
             useEffect(() => {
               const numColores = Number(values.colores) || 0;
               const coloresActuales = values.cantidadesPorColor.length;
@@ -217,13 +211,11 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
               }
             }, [values.colores]);
 
-            // Cálculo automático de totales
             useEffect(() => {
               const parseNum = (val: any) => (isNaN(val) || val === "" ? 0 : Number(val));
 
               let totalPrendas = 0;
 
-              // Sumar todas las cantidades de todos los colores
               values.cantidadesPorColor.forEach((color) => {
                 totalPrendas +=
                   parseNum(color.xs) +
@@ -242,7 +234,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
 
             return (
               <View>
-                {/* ========== FECHA ENTRADA ========== */}
                 <Text style={styles.label}>Fecha de entrada</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
@@ -266,7 +257,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   />
                 )}
 
-                {/* ========== FECHA SALIDA ========== */}
                 <Text style={styles.label}>Fecha de salida</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
@@ -290,7 +280,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   />
                 )}
 
-                {/* ========== CLIENTE ========== */}
                 <CustomDropdown
                   label="Cliente"
                   data={opcionesClientes}
@@ -300,7 +289,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   error={touched.cliente && errors.cliente}
                 />
 
-                {/* ========== COLORES ========== */}
                 <Text style={styles.label}>Cantidad de colores en el lote</Text>
                 <TextInput
                   style={styles.input}
@@ -314,7 +302,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   <Text style={styles.errorText}>{errors.colores}</Text>
                 )}
 
-                {/* ========== TIPO DE PRENDA ========== */}
                 <CustomDropdown
                   label="Tipo de prenda"
                   data={opcionesTiposPrenda}
@@ -328,7 +315,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   error={touched.tipoPrenda && errors.tipoPrenda}
                 />
 
-                {/* ========== REFERENCIA PRENDA ========== */}
                 <CustomDropdown
                   label="Referencia prenda"
                   data={obtenerReferenciasPorTipo(values.tipoPrenda)}
@@ -348,19 +334,17 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   error={touched.referenciaPrenda && errors.referenciaPrenda}
                 />
 
-                {/* Info de la prenda seleccionada */}
                 {prendaSeleccionada && (
                   <View style={styles.prendaInfo}>
-                    <Text style={styles.prendaInfoTitle}>📦 Prenda seleccionada:</Text>
-                    <Text style={styles.prendaInfoText}>• Tipo: {prendaSeleccionada.tipoPrenda}</Text>
-                    <Text style={styles.prendaInfoText}>• Marca: {prendaSeleccionada.marca}</Text>
+                    <Text style={styles.prendaInfoTitle}>Prenda seleccionada:</Text>
+                    <Text style={styles.prendaInfoText}>Tipo: {prendaSeleccionada.tipoPrenda}</Text>
+                    <Text style={styles.prendaInfoText}>Marca: {prendaSeleccionada.marca}</Text>
                     <Text style={styles.prendaInfoText}>
-                      • Precio unitario: ${prendaSeleccionada.precioTotal?.toLocaleString("es-CO")}
+                      Precio unitario: ${prendaSeleccionada.precioTotal?.toLocaleString("es-CO")}
                     </Text>
                   </View>
                 )}
 
-                {/* ========== REFERENCIA LOTE ========== */}
                 <Text style={styles.label}>Referencia del lote</Text>
                 <TextInput
                   style={styles.input}
@@ -373,7 +357,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   <Text style={styles.errorText}>{errors.referenciaLote}</Text>
                 )}
 
-                {/* ========== INSUMOS ========== */}
                 <Text style={styles.label}>Insumos (opcional)</Text>
                 <TextInput
                   style={styles.input}
@@ -383,7 +366,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   multiline
                 />
 
-                {/* ========== CANTIDADES POR COLOR ========== */}
                 {values.cantidadesPorColor.length > 0 && (
                   <>
                     <Text style={styles.sectionTitle}>Cantidades por color y talla</Text>
@@ -407,7 +389,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                             borderColor: "#E5E7EB",
                           }}
                         >
-                          {/* Nombre del color */}
                           <Text style={styles.label}>Nombre del color {colorIndex + 1}</Text>
                           <TextInput
                             style={styles.input}
@@ -420,7 +401,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                             }}
                           />
 
-                          {/* Tallas para este color */}
                           <View style={{ marginTop: 10 }}>
                             <Text style={{ fontSize: 14, fontWeight: "600", color: "#666", marginBottom: 8 }}>
                               Cantidades por talla:
@@ -445,7 +425,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                             ))}
                           </View>
 
-                          {/* Total del color */}
                           <View
                             style={{
                               backgroundColor: "#EEF2FF",
@@ -464,7 +443,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   </>
                 )}
 
-                {/* ========== TOTALES ========== */}
                 <View style={styles.resumenContainer}>
                   <Text style={styles.resumenTitle}>Resumen del lote</Text>
                   <Text style={styles.resumenText}>
@@ -475,7 +453,6 @@ export default function RegistroLotes({ onSuccess }: RegistroLotesProps) {
                   </Text>
                 </View>
 
-                {/* ========== BOTÓN GUARDAR ========== */}
                 <Button
                   mode="contained"
                   style={styles.submitButton}
