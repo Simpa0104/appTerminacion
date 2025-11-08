@@ -7,17 +7,11 @@ export default StyleSheet.create({
     backgroundColor: "#f4f4f4",
   },
 
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
   buttonRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+    marginBottom: 12,
   },
 
   button: {
@@ -25,7 +19,6 @@ export default StyleSheet.create({
     backgroundColor: "#007AFF",
   },
 
-  // barra de búsqueda
   searchBar: {
     margin: 10,
     backgroundColor: "#fff",
@@ -37,7 +30,6 @@ export default StyleSheet.create({
     marginBottom: 16,
   },
 
-  // Tarjetas de estadísticas
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -77,7 +69,6 @@ export default StyleSheet.create({
     marginVertical: 10,
   },
 
-  // Estados de carga y vacío
   loadingContainer: {
     padding: 40,
     alignItems: "center",
@@ -102,13 +93,12 @@ export default StyleSheet.create({
     textAlign: "center",
   },
 
-  // Tabla
   tableScrollContainer: {
     paddingBottom: 10,
   },
 
   tableContainer: {
-    minWidth: 1200,
+    minWidth: 1300,
   },
 
   tableHeader: {
@@ -139,7 +129,6 @@ export default StyleSheet.create({
     fontSize: 13,
   },
 
-  // Columnas (anchos ajustados)
   colReferencia: {
     width: 140,
   },
@@ -169,11 +158,10 @@ export default StyleSheet.create({
     width: 140,
   },
 
-  colAccion: {
-    width: 130,
+  colAcciones: {
+    width: 220,
   },
 
-  // Botones de estado
   estadoButton: {
     minWidth: 120,
   },
@@ -189,15 +177,35 @@ export default StyleSheet.create({
   },
 
   estadoRecibido: {
-    borderColor: "#FF5722",
-    backgroundColor: "#FFF3E0",
+    borderColor: "#2196F3",
+    backgroundColor: "#E3F2FD",
   },
 
-  verDetallesButton: {
-    paddingVertical: 4,
+  // Botones de acciones
+  accionesRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
   },
 
-  // Overlay (modal) - MEJORADO
+  verButton: {
+    color: "#666",
+    fontWeight: "600",
+    marginRight: 8,
+  },
+
+  editarButton: {
+    color: "#007AFF",
+    fontWeight: "600",
+    marginRight: 8,
+  },
+
+  eliminarButton: {
+    color: "#FF3B30",
+    fontWeight: "600",
+  },
+
+  // Modal overlay
   overlay: {
     position: "absolute",
     top: 0,
@@ -226,6 +234,85 @@ export default StyleSheet.create({
 
   overlayContent: {
     maxHeight: 550,
+  },
+
+  // Modal de edición
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    width: "90%",
+    maxHeight: "80%",
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#007AFF",
+    marginTop: 20,
+    marginBottom: 10,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+
+  cerrarModal: {
+    color: "#FF3B30",
+    fontWeight: "bold",
+  },
+
+  modalBody: {
+    padding: 20,
+    maxHeight: 400,
+  },
+
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 6,
+    marginTop: 12,
+  },
+
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+    fontSize: 14,
+  },
+
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
   },
 
   card: {

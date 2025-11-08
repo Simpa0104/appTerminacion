@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, TextInput } from "react-native";
+import { View, ScrollView, Text, TextInput, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Button, Menu, Portal } from "react-native-paper";
-import { collection, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { Card, Button, Menu, Portal, Dialog } from "react-native-paper";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import RegistroLotes from "./registroLotes";
 import RegistroPrendas from "./registroPrendas";
@@ -11,21 +11,21 @@ import styles from "../styles/dashBoard.styles";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
 
-
 export default function Dashboard() {
   const [visibleForm, setVisibleForm] = useState<null | "lotes" | "prendas" | "clientes">(null);
   const [lotes, setLotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [loteEditando, setLoteEditando] = useState<any>(null);
+  const [dialogoEliminar, setDialogoEliminar] = useState(false);
+  const [loteAEliminar, setLoteAEliminar] = useState<any>(null);
   const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
       const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Filtrar solo lotes que NO estén completados
       const lotesFiltradosEstado = lotesData.filter(lote => lote.estado !== "Completado");
-      // Ordenar por fecha de entrada (más reciente primero)
       lotesFiltradosEstado.sort((a, b) => {
         const dateA = new Date(a.fechaEntrada || 0);
         const dateB = new Date(b.fechaEntrada || 0);
@@ -50,9 +50,43 @@ export default function Dashboard() {
     }
   };
 
-  // Función para cerrar el formulario (se pasa a los componentes hijos)
   const handleCloseForm = () => {
     setVisibleForm(null);
+  };
+
+  const iniciarEdicion = (lote: any) => {
+    setLoteEditando(lote);
+  };
+
+  const guardarEdicion = async () => {
+    if (!loteEditando) return;
+
+    try {
+      const { id, ...datos } = loteEditando;
+      await updateDoc(doc(db, "lotes", id), datos);
+      setLotes((prev) => prev.map((l) => (l.id === id ? loteEditando : l)));
+      setLoteEditando(null);
+    } catch (error) {
+      console.error("Error actualizando lote:", error);
+    }
+  };
+
+  const confirmarEliminacion = (lote: any) => {
+    setLoteAEliminar(lote);
+    setDialogoEliminar(true);
+  };
+
+  const eliminarLote = async () => {
+    if (!loteAEliminar) return;
+
+    try {
+      await deleteDoc(doc(db, "lotes", loteAEliminar.id));
+      setLotes((prev) => prev.filter(l => l.id !== loteAEliminar.id));
+      setDialogoEliminar(false);
+      setLoteAEliminar(null);
+    } catch (error) {
+      console.error("Error eliminando lote:", error);
+    }
   };
 
   const term = search.trim().toLowerCase();
@@ -85,20 +119,18 @@ export default function Dashboard() {
   return (
     <Layout title="Dashboard" scrollable>
       <SafeAreaView style={styles.container}>
-        {/* Botones */}
         <View style={styles.buttonRow}>
           <Button mode="contained" onPress={() => toggleForm("lotes")} style={styles.button}>
-            {visibleForm === "lotes" ? "✕ Cerrar" : "Agregar Lote"}
+            {visibleForm === "lotes" ? "Cerrar" : "Agregar Lote"}
           </Button>
           <Button mode="contained" onPress={() => toggleForm("prendas")} style={styles.button}>
-            {visibleForm === "prendas" ? "✕ Cerrar" : "Agregar Prendas"}
+            {visibleForm === "prendas" ? "Cerrar" : "Agregar Prendas"}
           </Button>
           <Button mode="contained" onPress={() => toggleForm("clientes")} style={styles.button}>
-            {visibleForm === "clientes" ? "✕ Cerrar" : "Agregar Clientes"}
+            {visibleForm === "clientes" ? "Cerrar" : "Agregar Clientes"}
           </Button>
         </View>
 
-        {/* Barra de búsqueda debajo de los botones */}
         <TextInput
           style={styles.searchBar}
           placeholder="Buscar por cliente, referencia, tipo o cantidad..."
@@ -137,11 +169,7 @@ export default function Dashboard() {
               {search ? "No se encontraron lotes con ese criterio" : "No hay lotes registrados"}
             </Text>
             {!search && (
-              <Button
-                mode="contained"
-                onPress={() => toggleForm("lotes")}
-                style={{ marginTop: 10 }}
-              >
+              <Button mode="contained" onPress={() => toggleForm("lotes")} style={{ marginTop: 10 }}>
                 Crear primer lote
               </Button>
             )}
@@ -157,7 +185,7 @@ export default function Dashboard() {
                 <Text style={[styles.tableCell, styles.headerText, styles.colCantidad]}>Cantidad</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colTotal]}>Total</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colEstado]}>Estado</Text>
-                <Text style={[styles.tableCell, styles.headerText, styles.colAccion]}>Acción</Text>
+                <Text style={[styles.tableCell, styles.headerText, styles.colAcciones]}>Acciones</Text>
               </View>
 
               {lotesFiltrados.map((lote) => (
@@ -191,11 +219,10 @@ export default function Dashboard() {
                           onPress={() => setMenuVisible(menuVisible === lote.id ? null : lote.id)}
                           style={[
                             styles.estadoButton,
-                            lote.estado === "Completado" && styles.estadoCompletado,
                             lote.estado === "En proceso" && styles.estadoProceso,
                           ]}
                         >
-                          {lote.estado || "Recibido" && styles.estadoRecibido}
+                          {lote.estado || "Recibido"}
                         </Button>
                       }
                     >
@@ -212,14 +239,18 @@ export default function Dashboard() {
                     </Menu>
                   </View>
 
-                  <View style={[styles.tableCell, styles.colAccion]}>
-                    <Button
-                      mode="text"
-                      onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}
-                      style={styles.verDetallesButton}
-                    >
-                      Ver detalles
-                    </Button>
+                  <View style={[styles.tableCell, styles.colAcciones]}>
+                    <View style={styles.accionesRow}>
+                      <TouchableOpacity onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}>
+                        <Text style={styles.verButton}>Ver</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => iniciarEdicion(lote)}>
+                        <Text style={styles.editarButton}>Editar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => confirmarEliminacion(lote)}>
+                        <Text style={styles.eliminarButton}>Eliminar</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               ))}
@@ -227,34 +258,240 @@ export default function Dashboard() {
           </ScrollView>
         )}
 
+        {/* Modal para agregar */}
         <Portal>
           {visibleForm && (
             <View style={styles.overlay}>
               <Card style={styles.overlayCard}>
-                <Card.Title
-                  title={forms[visibleForm].title}
-                  titleStyle={styles.overlayTitle}
-                />
+                <Card.Title title={forms[visibleForm].title} titleStyle={styles.overlayTitle} />
                 <Card.Content style={styles.overlayContent}>
-                  <ScrollView
-                    showsVerticalScrollIndicator
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                  >
+                  <ScrollView showsVerticalScrollIndicator contentContainerStyle={{ paddingBottom: 20 }}>
                     {forms[visibleForm].component}
                   </ScrollView>
                 </Card.Content>
-
                 <Card.Actions style={{ justifyContent: "flex-end", padding: 16 }}>
-                  <Button
-                    onPress={() => setVisibleForm(null)}
-                    mode="outlined"
-                  >
+                  <Button onPress={() => setVisibleForm(null)} mode="outlined">
                     Cerrar
                   </Button>
                 </Card.Actions>
               </Card>
             </View>
           )}
+        </Portal>
+
+        {/* Modal de edición completo */}
+        <Modal
+          visible={!!loteEditando}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setLoteEditando(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Editar Lote</Text>
+                <TouchableOpacity onPress={() => setLoteEditando(null)}>
+                  <Text style={styles.cerrarModal}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator>
+                {loteEditando && (
+                  <>
+                    {/* FECHAS */}
+                    <Text style={styles.modalSectionTitle}>Fechas</Text>
+                    
+                    <Text style={styles.modalLabel}>Fecha de entrada</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.fechaEntrada}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, fechaEntrada: text })
+                      }
+                      placeholder="YYYY-MM-DD"
+                    />
+
+                    <Text style={styles.modalLabel}>Fecha de salida</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.fechaSalida}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, fechaSalida: text })
+                      }
+                      placeholder="YYYY-MM-DD"
+                    />
+
+                    {/* INFORMACIÓN GENERAL */}
+                    <Text style={styles.modalSectionTitle}>Informacion General</Text>
+
+                    <Text style={styles.modalLabel}>Referencia del lote</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.referenciaLote}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, referenciaLote: text })
+                      }
+                    />
+
+                    <Text style={styles.modalLabel}>Cliente</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.cliente}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, cliente: text })
+                      }
+                    />
+
+                    <Text style={styles.modalLabel}>Tipo de prenda</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.tipoPrenda}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, tipoPrenda: text })
+                      }
+                    />
+
+                    <Text style={styles.modalLabel}>Referencia de prenda</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={loteEditando.referenciaPrenda}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, referenciaPrenda: text })
+                      }
+                    />
+
+                    <Text style={styles.modalLabel}>Colores</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.colores || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, colores: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    {/* TALLAS */}
+                    <Text style={styles.modalSectionTitle}>Cantidades por Talla</Text>
+
+                    <Text style={styles.modalLabel}>XS</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.xs || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, xs: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    <Text style={styles.modalLabel}>S</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.s || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, s: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    <Text style={styles.modalLabel}>M</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.m || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, m: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    <Text style={styles.modalLabel}>L</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.l || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, l: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    <Text style={styles.modalLabel}>XL</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.xl || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, xl: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    {/* TOTALES */}
+                    <Text style={styles.modalSectionTitle}>Totales</Text>
+
+                    <Text style={styles.modalLabel}>Total de prendas</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.totalPrendas || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, totalPrendas: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    <Text style={styles.modalLabel}>Total del lote (COP)</Text>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={String(loteEditando.totalLote || "")}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, totalLote: text })
+                      }
+                      keyboardType="numeric"
+                    />
+
+                    {/* INSUMOS */}
+                    <Text style={styles.modalSectionTitle}>Insumos</Text>
+
+                    <Text style={styles.modalLabel}>Insumos (opcional)</Text>
+                    <TextInput
+                      style={[styles.modalInput, { height: 80 }]}
+                      value={loteEditando.insumos}
+                      onChangeText={(text) =>
+                        setLoteEditando({ ...loteEditando, insumos: text })
+                      }
+                      multiline
+                      placeholder="Botones, hilos, etiquetas..."
+                    />
+                  </>
+                )}
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <Button mode="outlined" onPress={() => setLoteEditando(null)}>
+                  Cancelar
+                </Button>
+                <Button mode="contained" onPress={guardarEdicion}>
+                  Guardar Cambios
+                </Button>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Diálogo de eliminación */}
+        <Portal>
+          <Dialog visible={dialogoEliminar} onDismiss={() => setDialogoEliminar(false)}>
+            <Dialog.Title>Confirmar eliminacion</Dialog.Title>
+            <Dialog.Content>
+              <Text>
+                Estas seguro de eliminar el lote{" "}
+                <Text style={{ fontWeight: "bold" }}>{loteAEliminar?.referenciaLote}</Text>?
+              </Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setDialogoEliminar(false)}>Cancelar</Button>
+              <Button onPress={eliminarLote} textColor="#FF3B30">
+                Eliminar
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
         </Portal>
       </SafeAreaView>
     </Layout>
