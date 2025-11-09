@@ -9,6 +9,7 @@ import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/clientes.styles";
 import { KeyboardAvoidingView, Platform } from "react-native";
 
+
 const validationSchema = Yup.object().shape({
   nombreCliente: Yup.string().required("Requerido"),
   empresa: Yup.string().required("Requerido"),
