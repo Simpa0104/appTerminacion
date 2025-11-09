@@ -1,137 +1,52 @@
+// screens/historialPrendas.styles.ts
 import { StyleSheet } from "react-native";
-import { theme } from "./theme";
+import { theme } from "../styles/theme";
+import { baseStyles } from "../styles/baseStyles";
 
 export default StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f2f2f2",
-  },
+  container: baseStyles.container,
+  searchBar: baseStyles.searchBar,
+  statsRow: baseStyles.statsRow,
+  statCard: baseStyles.statCard,
+  statNumber: baseStyles.statNumber,
+  statLabel: baseStyles.statLabel,
+  sectionTitle: baseStyles.sectionTitle,
+  loadingContainer: baseStyles.loadingContainer,
+  loadingText: baseStyles.loadingText,
+  emptyContainer: baseStyles.emptyContainer,
+  emptyText: baseStyles.emptyText,
+  tableContainer: baseStyles.tableContainer,
+  tableHeader: baseStyles.tableHeader,
+  tableRow: baseStyles.tableRow,
+  tableCell: baseStyles.tableCell,
+  headerText: baseStyles.headerText,
+  accionesRow: baseStyles.accionesRow,
+  overlay: baseStyles.overlay,
+  overlayCard: baseStyles.overlayCard,
+  overlayContent: baseStyles.overlayContent,
+  modalOverlay: baseStyles.modalOverlay,
+  modalContent: baseStyles.modalContent,
+  modalContentLarge: baseStyles.modalContentLarge,
+  modalHeader: baseStyles.modalHeader,
+  modalTitle: baseStyles.modalTitle,
+  modalBody: baseStyles.modalBody,
+  modalSectionTitle: baseStyles.modalSectionTitle,
+  modalActions: baseStyles.modalActions,
+  label: baseStyles.label,
+  input: baseStyles.input,
+  switchRow: baseStyles.switchRow,
 
-  // Encabezado
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+    ...baseStyles.headerRow,
   },
 
   addButton: {
-    backgroundColor: "#007AFF",
-    marginRight: 10,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.sm,
   },
 
-  searchBar: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    height: 40,
-  },
-
-  // Estadísticas
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    gap: 10,
-  },
-
-  statCard: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#007AFF",
-    marginBottom: 4,
-  },
-
-  statLabel: {
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginVertical: 10,
-  },
-
-  // Estados de carga
-  loadingContainer: {
-    padding: 40,
-    alignItems: "center",
-  },
-
-  loadingText: {
-    fontSize: 16,
-    color: "#666",
-  },
-
-  emptyContainer: {
-    padding: 40,
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginTop: 20,
-  },
-
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginVertical: 12,
-  },
-
-  // Tabla
-  tableContainer: {
-    minWidth: 1100,
-  },
-
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#e9e9e9",
-    paddingVertical: 12,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-  },
-
-  tableRow: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderColor: "#e6e6e6",
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-
-  tableCell: {
-    paddingHorizontal: 10,
-    justifyContent: "center",
-  },
-
-  headerText: {
-    fontWeight: "700",
-    fontSize: 13,
-  },
-
-  // Columnas
   colTipo: {
-    width: 140,
+    width: theme.tableColumns.medium,
   },
 
   colMarca: {
@@ -139,16 +54,16 @@ export default StyleSheet.create({
   },
 
   colRef: {
-    width: 150,
+    width: theme.tableColumns.large,
   },
 
   colBotones: {
-    width: 100,
+    width: theme.tableColumns.narrow,
     textAlign: "center",
   },
 
   colProcesos: {
-    width: 280,
+    width: theme.tableColumns.xxlarge,
   },
 
   colTotal: {
@@ -156,133 +71,76 @@ export default StyleSheet.create({
   },
 
   colAcciones: {
-    width: 120,
+    width: theme.tableColumns.small,
   },
 
-  // Procesos (chips)
   procesosContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
+    gap: theme.spacing.xs,
   },
 
   procesoChip: {
-    backgroundColor: "#E3F2FD",
-    color: "#1976D2",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 11,
-    fontWeight: "600",
+    ...baseStyles.chipBlue,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.xl,
+    fontSize: theme.fontSize.sm,
   },
 
   totalText: {
-    fontWeight: "bold",
-    color: "#4CAF50",
-    fontSize: 14,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.success,
+    fontSize: theme.fontSize.lg,
   },
 
-  accionesRow: {
-    flexDirection: "row",
-    justifyContent: "center",
+  editarButton: {
+    ...baseStyles.buttonText,
+    ...baseStyles.buttonPrimary,
   },
 
-  // Modal overlay (agregar prenda)
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 2000,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  eliminarButton: {
+    ...baseStyles.buttonText,
+    ...baseStyles.buttonDanger,
   },
 
-  overlayCard: {
-    width: "90%",
-    maxWidth: 800,
-    maxHeight: "85%",
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#fff",
+  cerrarModal: {
+    fontSize: theme.fontSize.xl,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.semibold,
   },
 
-  overlayContent: {
-    maxHeight: 550,
-  },
-
-  // Modal para editar
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    width: "90%",
-    maxHeight: "80%",
-  },
-
-  modalHeader: {
+  totalContainerModal: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
+    backgroundColor: theme.colors.table.header,
+    padding: theme.spacing.xxl,
+    borderRadius: theme.borderRadius.lg,
+    marginTop: theme.spacing.xxl,
+    borderWidth: theme.borderWidth.medium,
+    borderColor: theme.colors.primary,
   },
 
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
+  totalLabelModal: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.secondary,
   },
 
-  modalBody: {
-    padding: 20,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 6,
-    marginTop: 12,
-  },
-
-  input: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    fontSize: 14,
-  },
-
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
+  totalValueModal: {
+    fontSize: theme.fontSize.display2,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary,
   },
 
   card: {
-    marginTop: 16,
-    borderRadius: 12,
-    elevation: 4,
+    ...baseStyles.card,
+    marginTop: theme.spacing.lg,
   },
 
   buttonCenter: {
     alignSelf: "center",
-    backgroundColor: "#007AFF",
+    backgroundColor: theme.colors.primary,
   },
 });

@@ -1,12 +1,37 @@
+//registroLotes.styles.ts
 import { StyleSheet } from "react-native";
+import { theme } from "../styles/theme";
+import { baseStyles } from "../styles/baseStyles";
 
 export default StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F7F9FC",
-        paddingHorizontal: 20,
-        paddingTop: 25,
-    },
+  container: baseStyles.container,
+  searchBar: baseStyles.searchBar,
+  statsRow: baseStyles.statsRow,
+  statCard: baseStyles.statCard,
+  statNumber: baseStyles.statNumber,
+  statLabel: baseStyles.statLabel,
+  sectionTitle: baseStyles.sectionTitle,
+  loadingContainer: baseStyles.loadingContainer,
+  loadingText: baseStyles.loadingText,
+  emptyContainer: baseStyles.emptyContainer,
+  emptyText: baseStyles.emptyText,
+  tableContainer: baseStyles.tableContainer,
+  tableHeader: baseStyles.tableHeader,
+  tableRow: baseStyles.tableRow,
+  tableCell: baseStyles.tableCell,
+  headerText: baseStyles.headerText,
+  accionesRow: baseStyles.accionesRow,
+  overlay: baseStyles.overlay,
+  overlayCard: baseStyles.overlayCard,
+  overlayContent: baseStyles.overlayContent,
+  modalOverlay: baseStyles.modalOverlay,
+  modalContent: baseStyles.modalContent,
+  modalHeader: baseStyles.modalHeader,
+  modalTitle: baseStyles.modalTitle,
+  modalSectionTitle: baseStyles.modalSectionTitle,
+  modalBody: baseStyles.modalBody,
+  modalActions: baseStyles.modalActions,
+  card: baseStyles.card,
 
     label: {
         fontSize: 15,
@@ -62,37 +87,6 @@ export default StyleSheet.create({
         color: "#333",
     },
 
-    // Estilos para el modal del dropdown
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "flex-end",
-    },
-
-    modalContent: {
-        backgroundColor: "#FFF",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: "70%",
-        paddingBottom: 20,
-    },
-
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E0E0E0",
-    },
-
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#333",
-    },
-
     modalItem: {
         paddingVertical: 16,
         paddingHorizontal: 20,
@@ -131,15 +125,6 @@ export default StyleSheet.create({
         fontSize: 13,
         color: "#333",
         marginBottom: 2,
-    },
-
-    // Título de sección
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#333",
-        marginTop: 20,
-        marginBottom: 10,
     },
 
     // Resumen del lote

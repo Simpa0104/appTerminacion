@@ -1,123 +1,40 @@
 import { StyleSheet } from "react-native";
+import { theme } from "../styles/theme";
+import { baseStyles } from "../styles/baseStyles";
 
 export default StyleSheet.create({
-    container: {
-        padding: 16,
-        flex: 1,
-        backgroundColor: "#f4f4f4",
-    },
-
-    searchBar: {
-        width: "100%",
-        backgroundColor: "#fff",
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: "#ddd",
-        height: 40,
-        marginBottom: 16,
-    },
-
-    // Estadísticas
-    statsRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 16,
-        gap: 10,
-    },
-
-    statCard: {
-        flex: 1,
-        backgroundColor: "#fff",
-        padding: 16,
-        borderRadius: 12,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-
-    statNumber: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "#4CAF50",
-        marginBottom: 4,
-    },
-
-    statLabel: {
-        fontSize: 12,
-        color: "#666",
-        textAlign: "center",
-    },
-
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        marginVertical: 10,
-    },
-
-    // Estados de carga
-    loadingContainer: {
-        padding: 40,
-        alignItems: "center",
-    },
-
-    loadingText: {
-        fontSize: 16,
-        color: "#666",
-    },
-
-    emptyContainer: {
-        padding: 40,
-        alignItems: "center",
-        backgroundColor: "#fff",
-        borderRadius: 12,
-        marginTop: 20,
-    },
-
-    emptyText: {
-        fontSize: 16,
-        color: "#666",
-        textAlign: "center",
-    },
+    container: baseStyles.container,
+    searchBar: baseStyles.searchBar,
+    statsRow: baseStyles.statsRow,
+    statCard: baseStyles.statCard,
+    statNumber: baseStyles.statNumber,
+    statLabel: baseStyles.statLabel,
+    sectionTitle: baseStyles.sectionTitle,
+    loadingContainer: baseStyles.loadingContainer,
+    loadingText: baseStyles.loadingText,
+    emptyContainer: baseStyles.emptyContainer,
+    emptyText: baseStyles.emptyText,
+    tableContainer: baseStyles.tableContainer,
+    tableHeader: baseStyles.tableHeader,
+    tableRow: baseStyles.tableRow,
+    tableCell: baseStyles.tableCell,
+    headerText: baseStyles.headerText,
+    accionesRow: baseStyles.accionesRow,
+    overlay: baseStyles.overlay,
+    overlayCard: baseStyles.overlayCard,
+    overlayContent: baseStyles.overlayContent,
+    modalOverlay: baseStyles.modalOverlay,
+    modalContent: baseStyles.modalContent,
+    modalHeader: baseStyles.modalHeader,
+    modalTitle: baseStyles.modalTitle,
+    modalSectionTitle: baseStyles.modalSectionTitle,
+    modalBody: baseStyles.modalBody,
+    modalActions: baseStyles.modalActions,
+    card: baseStyles.card,
 
     // Tabla
     tableScrollContainer: {
         paddingBottom: 10,
-    },
-
-    tableContainer: {
-        minWidth: 1200,
-    },
-
-    tableHeader: {
-        flexDirection: "row",
-        backgroundColor: "#e9e9e9",
-        paddingVertical: 12,
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
-    },
-
-    tableRow: {
-        flexDirection: "row",
-        backgroundColor: "#fff",
-        borderBottomWidth: 1,
-        borderColor: "#e6e6e6",
-        paddingVertical: 18,
-        alignItems: "center",
-    },
-
-    tableCell: {
-        paddingHorizontal: 10,
-        textAlign: "center",
-        justifyContent: "center",
-    },
-
-    headerText: {
-        fontWeight: "700",
-        fontSize: 13,
     },
 
     // Columnas
@@ -167,13 +84,6 @@ export default StyleSheet.create({
     estadoProceso: {
         borderColor: "#FF9800",
         backgroundColor: "#FFF3E0",
-    },
-
-    // Acciones
-    accionesRow: {
-        flexDirection: "row",
-        justifyContent: "center",
-        gap: 10,
     },
 
     verButton: {

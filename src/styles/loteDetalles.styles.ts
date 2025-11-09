@@ -1,11 +1,37 @@
-// src/styles/loteDetalles.styles.ts
+//loteDetalles.styles.ts
 import { StyleSheet } from "react-native";
+import { theme } from "../styles/theme";
+import { baseStyles } from "../styles/baseStyles";
 
 export default StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
+  container: baseStyles.container,
+  searchBar: baseStyles.searchBar,
+  statsRow: baseStyles.statsRow,
+  statCard: baseStyles.statCard,
+  statNumber: baseStyles.statNumber,
+  statLabel: baseStyles.statLabel,
+  sectionTitle: baseStyles.sectionTitle,
+  loadingContainer: baseStyles.loadingContainer,
+  loadingText: baseStyles.loadingText,
+  emptyContainer: baseStyles.emptyContainer,
+  emptyText: baseStyles.emptyText,
+  tableContainer: baseStyles.tableContainer,
+  tableHeader: baseStyles.tableHeader,
+  tableRow: baseStyles.tableRow,
+  tableCell: baseStyles.tableCell,
+  headerText: baseStyles.headerText,
+  accionesRow: baseStyles.accionesRow,
+  overlay: baseStyles.overlay,
+  overlayCard: baseStyles.overlayCard,
+  overlayContent: baseStyles.overlayContent,
+  modalOverlay: baseStyles.modalOverlay,
+  modalContent: baseStyles.modalContent,
+  modalHeader: baseStyles.modalHeader,
+  modalTitle: baseStyles.modalTitle,
+  modalSectionTitle: baseStyles.modalSectionTitle,
+  modalBody: baseStyles.modalBody,
+  modalActions: baseStyles.modalActions,
+  card: baseStyles.card,
 
   scrollContent: {
     padding: 20,
@@ -21,12 +47,6 @@ export default StyleSheet.create({
   emptyIcon: {
     fontSize: 64,
     marginBottom: 16,
-  },
-
-  emptyText: {
-    fontSize: 18,
-    color: "#666",
-    marginBottom: 24,
   },
 
   // Encabezado con estado
@@ -64,19 +84,6 @@ export default StyleSheet.create({
     paddingHorizontal: 8,
   },
 
-  // Cards de secciones
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -86,12 +93,6 @@ export default StyleSheet.create({
   cardHeaderIcon: {
     fontSize: 22,
     marginRight: 8,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333",
   },
 
   // Información general

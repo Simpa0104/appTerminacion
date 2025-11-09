@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, ScrollView, Text, TextInput, Modal, TouchableOpacity, KeyboardAvoidingView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, ScrollView, Text, TextInput, Modal, TouchableOpacity, Switch } from "react-native";
 import { Card, Button, Portal, Dialog } from "react-native-paper";
 import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
@@ -7,7 +7,6 @@ import useFetchCollection from "../hooks/useFetchCollection";
 import RegistroPrendas from "./registroPrendas";
 import styles from "../styles/historialPrendas.styles";
 import Layout from "../components/layout";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function HistorialPrendas() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -15,18 +14,9 @@ export default function HistorialPrendas() {
   const [prendaEditando, setPrendaEditando] = useState<any>(null);
   const [mostrarDialogoEliminar, setMostrarDialogoEliminar] = useState(false);
   const [prendaAEliminar, setPrendaAEliminar] = useState<any>(null);
+  const [precioTotalEdicion, setPrecioTotalEdicion] = useState(0);
 
   const { data: prendas, loading } = useFetchCollection("prendas");
-  const scrollRef = useRef<ScrollView>(null);
-
-  // Hacer scroll al inicio cuando se abre el modal de edición
-  useEffect(() => {
-    if (prendaEditando && scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-      }, 300);
-    }
-  }, [prendaEditando]);
 
   // Filtrar prendas
   const term = search.trim().toLowerCase();
@@ -39,9 +29,44 @@ export default function HistorialPrendas() {
     );
   });
 
-  // Función para editar prenda
+  // Recalcular precio total al editar
+  useEffect(() => {
+    if (!prendaEditando) return;
+
+    let total = 0;
+
+    if (prendaEditando.precioAbotonar && prendaEditando.cantidadBotones) {
+      total += parseFloat(prendaEditando.precioAbotonar) * parseInt(prendaEditando.cantidadBotones);
+    }
+
+    [
+      { key: "pulir", precio: "precioPulir" },
+      { key: "planchar", precio: "precioPlanchar" },
+      { key: "etiquetar", precio: "precioEtiquetar" },
+      { key: "placa", precio: "precioPlaca" },
+      { key: "doblar", precio: "precioDoblar" },
+      { key: "empacar", precio: "precioEmpacar" },
+    ].forEach((item) => {
+      if (prendaEditando[item.key]) {
+        total += parseFloat(prendaEditando[item.precio]) || 0;
+      }
+    });
+
+    setPrecioTotalEdicion(total);
+  }, [prendaEditando]);
+
   const iniciarEdicion = (prenda: any) => {
-    setPrendaEditando(prenda);
+    setPrendaEditando({
+      ...prenda,
+      precioAbotonar: String(prenda.precioAbotonar || ""),
+      cantidadBotones: String(prenda.cantidadBotones || ""),
+      precioPulir: String(prenda.precioPulir || ""),
+      precioPlanchar: String(prenda.precioPlanchar || ""),
+      precioEtiquetar: String(prenda.precioEtiquetar || ""),
+      precioPlaca: String(prenda.precioPlaca || ""),
+      precioDoblar: String(prenda.precioDoblar || ""),
+      precioEmpacar: String(prenda.precioEmpacar || ""),
+    });
   };
 
   const guardarEdicion = async () => {
@@ -49,14 +74,26 @@ export default function HistorialPrendas() {
 
     try {
       const { id, ...datos } = prendaEditando;
-      await updateDoc(doc(db, "prendas", id), datos);
+      const datosActualizados = {
+        ...datos,
+        precioAbotonar: parseFloat(prendaEditando.precioAbotonar) || 0,
+        precioPulir: parseFloat(prendaEditando.precioPulir) || 0,
+        precioPlanchar: parseFloat(prendaEditando.precioPlanchar) || 0,
+        precioEtiquetar: parseFloat(prendaEditando.precioEtiquetar) || 0,
+        precioPlaca: parseFloat(prendaEditando.precioPlaca) || 0,
+        precioDoblar: parseFloat(prendaEditando.precioDoblar) || 0,
+        precioEmpacar: parseFloat(prendaEditando.precioEmpacar) || 0,
+        cantidadBotones: parseInt(prendaEditando.cantidadBotones) || 0,
+        precioTotal: precioTotalEdicion,
+      };
+
+      await updateDoc(doc(db, "prendas", id), datosActualizados);
       setPrendaEditando(null);
     } catch (error) {
       console.error("Error actualizando prenda:", error);
     }
   };
 
-  // Función para eliminar prenda
   const confirmarEliminacion = (prenda: any) => {
     setPrendaAEliminar(prenda);
     setMostrarDialogoEliminar(true);
@@ -123,16 +160,11 @@ export default function HistorialPrendas() {
           </View>
         ) : prendasFiltradas.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="hanger" size={64} color="#999" />
             <Text style={styles.emptyText}>
               {search ? "No se encontraron prendas" : "No hay prendas registradas"}
             </Text>
             {!search && (
-              <Button
-                mode="contained"
-                onPress={() => setMostrarFormulario(true)}
-                style={{ marginTop: 10 }}
-              >
+              <Button mode="contained" onPress={() => setMostrarFormulario(true)} style={{ marginTop: 10 }}>
                 Crear primera prenda
               </Button>
             )}
@@ -140,7 +172,6 @@ export default function HistorialPrendas() {
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator>
             <View style={styles.tableContainer}>
-              {/* Encabezado */}
               <View style={styles.tableHeader}>
                 <Text style={[styles.tableCell, styles.headerText, styles.colTipo]}>Tipo</Text>
                 <Text style={[styles.tableCell, styles.headerText, styles.colMarca]}>Marca</Text>
@@ -151,15 +182,12 @@ export default function HistorialPrendas() {
                 <Text style={[styles.tableCell, styles.headerText, styles.colAcciones]}>Acciones</Text>
               </View>
 
-              {/* Filas */}
               {prendasFiltradas.map((prenda) => (
                 <View key={prenda.id} style={styles.tableRow}>
                   <Text style={[styles.tableCell, styles.colTipo]}>{prenda.tipoPrenda}</Text>
                   <Text style={[styles.tableCell, styles.colMarca]}>{prenda.marca}</Text>
                   <Text style={[styles.tableCell, styles.colRef]}>{prenda.referencia}</Text>
-                  <Text style={[styles.tableCell, styles.colBotones]}>
-                    {prenda.cantidadBotones || 0}
-                  </Text>
+                  <Text style={[styles.tableCell, styles.colBotones]}>{prenda.cantidadBotones || 0}</Text>
                   <View style={[styles.tableCell, styles.colProcesos]}>
                     <View style={styles.procesosContainer}>
                       {prenda.pulir && <Text style={styles.procesoChip}>Pulir</Text>}
@@ -174,14 +202,13 @@ export default function HistorialPrendas() {
                     ${(prenda.precioTotal || 0).toLocaleString("es-CO")}
                   </Text>
 
-                  {/* ✅ Reemplazo de íconos por texto */}
                   <View style={[styles.tableCell, styles.colAcciones]}>
                     <View style={styles.accionesRow}>
                       <TouchableOpacity onPress={() => iniciarEdicion(prenda)}>
-                        <Text style={{ color: "#007AFF", marginRight: 10 }}>Editar</Text>
+                        <Text style={styles.editarButton}>Editar</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => confirmarEliminacion(prenda)}>
-                        <Text style={{ color: "#FF3B30" }}>Eliminar</Text>
+                        <Text style={styles.eliminarButton}>Eliminar</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -210,8 +237,7 @@ export default function HistorialPrendas() {
           )}
         </Portal>
 
-        {/* Modal de edición */}
-        
+        {/* Modal de edición COMPLETO */}
         <Modal
           visible={!!prendaEditando}
           transparent
@@ -219,99 +245,232 @@ export default function HistorialPrendas() {
           onRequestClose={() => setPrendaEditando(null)}
         >
           <View style={styles.modalOverlay}>
-            <KeyboardAvoidingView
-              behavior="padding"
-              style={{ flex: 1, width: "100%" }}
-            >
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Editar Prenda</Text>
-                  <TouchableOpacity onPress={() => setPrendaEditando(null)}>
-                    <Text style={{ color: "#FF3B30", fontWeight: "bold" }}>Cerrar</Text>
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.modalContentLarge}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Editar Prenda</Text>
+                <TouchableOpacity onPress={() => setPrendaEditando(null)}>
+                  <Text style={styles.cerrarModal}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
 
-                {/* 🔹 ScrollView para todo el formulario */}
-                <ScrollView
-                  ref={scrollRef}
-                  style={styles.modalBody}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                >
-                  {prendaEditando && (
-                    <>
-                      <Text style={styles.label}>Tipo de prenda</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={prendaEditando.tipoPrenda}
-                        onChangeText={(text) =>
-                          setPrendaEditando({ ...prendaEditando, tipoPrenda: text })
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator>
+                {prendaEditando && (
+                  <>
+                    <Text style={styles.modalSectionTitle}>Información Básica</Text>
+
+                    <Text style={styles.label}>Tipo de prenda</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={prendaEditando.tipoPrenda}
+                      onChangeText={(text) =>
+                        setPrendaEditando({ ...prendaEditando, tipoPrenda: text })
+                      }
+                    />
+
+                    <Text style={styles.label}>Marca</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={prendaEditando.marca}
+                      onChangeText={(text) =>
+                        setPrendaEditando({ ...prendaEditando, marca: text })
+                      }
+                    />
+
+                    <Text style={styles.label}>Referencia</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={prendaEditando.referencia}
+                      onChangeText={(text) =>
+                        setPrendaEditando({ ...prendaEditando, referencia: text })
+                      }
+                    />
+
+                    <Text style={styles.modalSectionTitle}>Procesos y Costos</Text>
+
+                    {/* ABOTONAR */}
+                    <Text style={styles.label}>Precio por abotonar (por boton)</Text>
+                    <TextInput
+                      style={styles.input}
+                      keyboardType="numeric"
+                      value={prendaEditando.precioAbotonar}
+                      onChangeText={(text) =>
+                        setPrendaEditando({ ...prendaEditando, precioAbotonar: text })
+                      }
+                    />
+
+                    <Text style={styles.label}>Cantidad de botones</Text>
+                    <TextInput
+                      style={styles.input}
+                      keyboardType="numeric"
+                      value={prendaEditando.cantidadBotones}
+                      onChangeText={(text) =>
+                        setPrendaEditando({ ...prendaEditando, cantidadBotones: text })
+                      }
+                    />
+
+                    {/* PULIR */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Pulir</Text>
+                      <Switch
+                        value={prendaEditando.pulir}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, pulir: val })
                         }
                       />
-
-                      <Text style={styles.label}>Marca</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={prendaEditando.marca}
-                        onChangeText={(text) =>
-                          setPrendaEditando({ ...prendaEditando, marca: text })
-                        }
-                      />
-
-                      <Text style={styles.label}>Referencia</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={prendaEditando.referencia}
-                        onChangeText={(text) =>
-                          setPrendaEditando({ ...prendaEditando, referencia: text })
-                        }
-                      />
-
-                      <Text style={styles.label}>Cantidad de botones</Text>
+                    </View>
+                    {prendaEditando.pulir && (
                       <TextInput
                         style={styles.input}
                         keyboardType="numeric"
-                        value={String(prendaEditando.cantidadBotones || 0)}
+                        placeholder="Precio"
+                        value={prendaEditando.precioPulir}
                         onChangeText={(text) =>
-                          setPrendaEditando({
-                            ...prendaEditando,
-                            cantidadBotones: parseInt(text) || 0,
-                          })
+                          setPrendaEditando({ ...prendaEditando, precioPulir: text })
                         }
                       />
+                    )}
 
-                      {/* Aquí puedes seguir añadiendo más campos si los deseas editar */}
-                    </>
-                  )}
-                </ScrollView>
+                    {/* PLANCHAR */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Planchar</Text>
+                      <Switch
+                        value={prendaEditando.planchar}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, planchar: val })
+                        }
+                      />
+                    </View>
+                    {prendaEditando.planchar && (
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        placeholder="Precio"
+                        value={prendaEditando.precioPlanchar}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, precioPlanchar: text })
+                        }
+                      />
+                    )}
 
-                <View style={styles.modalActions}>
-                  <Button mode="outlined" onPress={() => setPrendaEditando(null)}>
-                    Cancelar
-                  </Button>
-                  <Button mode="contained" onPress={guardarEdicion}>
-                    Guardar
-                  </Button>
-                </View>
+                    {/* ETIQUETAR */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Etiquetar</Text>
+                      <Switch
+                        value={prendaEditando.etiquetar}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, etiquetar: val })
+                        }
+                      />
+                    </View>
+                    {prendaEditando.etiquetar && (
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        placeholder="Precio"
+                        value={prendaEditando.precioEtiquetar}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, precioEtiquetar: text })
+                        }
+                      />
+                    )}
+
+                    {/* PLACA */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Colocar placa</Text>
+                      <Switch
+                        value={prendaEditando.placa}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, placa: val })
+                        }
+                      />
+                    </View>
+                    {prendaEditando.placa && (
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        placeholder="Precio"
+                        value={prendaEditando.precioPlaca}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, precioPlaca: text })
+                        }
+                      />
+                    )}
+
+                    {/* DOBLAR */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Doblar</Text>
+                      <Switch
+                        value={prendaEditando.doblar}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, doblar: val })
+                        }
+                      />
+                    </View>
+                    {prendaEditando.doblar && (
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        placeholder="Precio"
+                        value={prendaEditando.precioDoblar}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, precioDoblar: text })
+                        }
+                      />
+                    )}
+
+                    {/* EMPACAR */}
+                    <View style={styles.switchRow}>
+                      <Text style={styles.label}>Empacar</Text>
+                      <Switch
+                        value={prendaEditando.empacar}
+                        onValueChange={(val) =>
+                          setPrendaEditando({ ...prendaEditando, empacar: val })
+                        }
+                      />
+                    </View>
+                    {prendaEditando.empacar && (
+                      <TextInput
+                        style={styles.input}
+                        keyboardType="numeric"
+                        placeholder="Precio"
+                        value={prendaEditando.precioEmpacar}
+                        onChangeText={(text) =>
+                          setPrendaEditando({ ...prendaEditando, precioEmpacar: text })
+                        }
+                      />
+                    )}
+
+                    {/* TOTAL */}
+                    <View style={styles.totalContainerModal}>
+                      <Text style={styles.totalLabelModal}>Costo total:</Text>
+                      <Text style={styles.totalValueModal}>
+                        ${precioTotalEdicion.toLocaleString("es-CO")}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <Button mode="outlined" onPress={() => setPrendaEditando(null)}>
+                  Cancelar
+                </Button>
+                <Button mode="contained" onPress={guardarEdicion}>
+                  Guardar Cambios
+                </Button>
               </View>
-            </KeyboardAvoidingView>
+            </View>
           </View>
         </Modal>
 
         {/* Diálogo eliminar */}
         <Portal>
-          <Dialog
-            visible={mostrarDialogoEliminar}
-            onDismiss={() => setMostrarDialogoEliminar(false)}
-          >
-            <Dialog.Title>Confirmar eliminación</Dialog.Title>
+          <Dialog visible={mostrarDialogoEliminar} onDismiss={() => setMostrarDialogoEliminar(false)}>
+            <Dialog.Title>Confirmar eliminacion</Dialog.Title>
             <Dialog.Content>
               <Text>
-                ¿Estás seguro de eliminar la prenda{" "}
-                <Text style={{ fontWeight: "bold" }}>
-                  {prendaAEliminar?.referencia}
-                </Text>
-                ?
+                Estas seguro de eliminar la prenda{" "}
+                <Text style={{ fontWeight: "bold" }}>{prendaAEliminar?.referencia}</Text>?
               </Text>
             </Dialog.Content>
             <Dialog.Actions>
