@@ -1,14 +1,18 @@
 // src/screens/LoteDetalles.tsx
-import React from "react";
-import { View, Text, ScrollView } from "react-native";
-import { Button, Card, Chip } from "react-native-paper";
+import React, { useState } from "react";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { Button, Card, Chip, Menu } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import styles from "../styles/loteDetalles.styles";
+import PDFService from "../services/pdfService";
 
 export default function LoteDetalles() {
   const navigation = useNavigation();
   const route = useRoute();
   const { lote }: any = route.params ?? { lote: null };
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   if (!lote) {
     return (
@@ -44,12 +48,27 @@ export default function LoteDetalles() {
     }
   };
 
-  const getEstadoEmoji = (estado: string) => {
-    switch (estado) {
-      case "Completado":
-      case "En proceso":
-      case "Recibido":
-      default:
+  const handleGeneratePDF = async () => {
+    setIsGenerating(true);
+    setMenuVisible(false);
+    try {
+      await PDFService.generateAndSharePDF(lote);
+    } catch (error) {
+      console.error("Error generando PDF:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateOnly = async () => {
+    setIsGenerating(true);
+    setMenuVisible(false);
+    try {
+      await PDFService.printPDF(lote);
+    } catch (error) {
+      console.error("Error generando PDF:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -70,7 +89,7 @@ export default function LoteDetalles() {
               style={[styles.estadoChip, { backgroundColor: getEstadoColor(lote.estado) }]}
               textStyle={{ color: "#fff", fontWeight: "bold" }}
             >
-              {getEstadoEmoji(lote.estado)} {lote.estado || "Recibido"}
+              {lote.estado || "Recibido"}
             </Chip>
           </View>
         </Card>
@@ -141,7 +160,7 @@ export default function LoteDetalles() {
               return (
                 <View key={index} style={styles.colorCard}>
                   <View style={styles.colorHeader}>
-                    <Text style={styles.colorName}>🔵 {color.nombreColor}</Text>
+                    <Text style={styles.colorName}>{color.nombreColor}</Text>
                     <Text style={styles.colorTotal}>{totalColor} prendas</Text>
                   </View>
 
@@ -149,7 +168,7 @@ export default function LoteDetalles() {
                     {["xs", "s", "m", "l", "xl"].map((talla) => {
                       const cantidad = Number(color[talla] || 0);
                       if (cantidad === 0) return null;
-                      
+
                       return (
                         <View key={talla} style={styles.colorSizeBox}>
                           <Text style={styles.colorSizeLabel}>{talla.toUpperCase()}</Text>
@@ -164,7 +183,7 @@ export default function LoteDetalles() {
           </Card>
         )}
 
-        {/* Tallas totales (si no hay cantidadesPorColor) */}
+        {/* Tallas totales */}
         {(!lote.cantidadesPorColor || lote.cantidadesPorColor.length === 0) && (
           <Card style={styles.card}>
             <View style={styles.cardHeader}>
@@ -188,26 +207,22 @@ export default function LoteDetalles() {
             <Text style={styles.sectionTitle}>Resumen de costos</Text>
           </View>
 
-          {/* Total de prendas */}
           <View style={styles.costRow}>
             <Text style={styles.costLabel}>Total de prendas</Text>
             <Text style={styles.costValue}>{lote.totalPrendas || 0} unidades</Text>
           </View>
 
-          {/* Procesos */}
           {lote.procesos && lote.procesos.length > 0 && (
             <>
               <View style={styles.divider} />
               <Text style={styles.procesosTitle}>Costos por proceso</Text>
-              
+
               {lote.procesos.map((proceso: any, index: number) => (
                 <View key={index} style={styles.procesoRow}>
                   <View style={styles.procesoInfo}>
                     <Text style={styles.procesoNombre}>{proceso.nombre}</Text>
                     {proceso.proveedor && (
-                      <Text style={styles.procesoProveedor}>
-                        {proceso.proveedor}
-                      </Text>
+                      <Text style={styles.procesoProveedor}>{proceso.proveedor}</Text>
                     )}
                   </View>
                   <Text style={styles.procesoCosto}>
@@ -216,7 +231,6 @@ export default function LoteDetalles() {
                 </View>
               ))}
 
-              {/* Total de procesos */}
               <View style={styles.procesoTotal}>
                 <Text style={styles.procesoTotalLabel}>Subtotal procesos</Text>
                 <Text style={styles.procesoTotalValue}>
@@ -230,7 +244,6 @@ export default function LoteDetalles() {
 
           <View style={styles.divider} />
 
-          {/* Total del lote */}
           <View style={styles.costRow}>
             <Text style={styles.costLabelTotal}>Total del lote</Text>
             <Text style={styles.costValueTotal}>
@@ -249,24 +262,44 @@ export default function LoteDetalles() {
           </Card>
         )}
 
-        {/* Botones de acción */}
+        {/* Botones */}
         <View style={styles.buttonContainer}>
           <Button
             mode="outlined"
             style={styles.secondaryButton}
             onPress={() => navigation.goBack()}
+            disabled={isGenerating}
           >
-            ← Volver
+            Volver
           </Button>
-          <Button
-            mode="contained"
-            style={styles.primaryButton}
-            onPress={() => {
-              console.log("Imprimir lote:", lote);
-            }}
+
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <Button
+                mode="contained"
+                style={styles.primaryButton}
+                onPress={() => setMenuVisible(true)}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  "Generar PDF"
+                )}
+              </Button>
+            }
           >
-            Imprimir
-          </Button>
+            <Menu.Item
+              onPress={handleGeneratePDF}
+              title="Generar y Compartir"
+            />
+            <Menu.Item
+              onPress={handleGenerateOnly}
+              title="Imprimir"
+            />
+          </Menu>
         </View>
       </ScrollView>
     </View>
