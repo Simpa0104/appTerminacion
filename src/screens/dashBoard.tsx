@@ -10,21 +10,24 @@ import Clientes from "./clientes";
 import styles from "../styles/dashBoard.styles";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
+import { Lote } from "../types/lote";
+import WhatsAppService from "../services/whatsappService";
 
 export default function Dashboard() {
   const [visibleForm, setVisibleForm] = useState<null | "lotes" | "prendas" | "clientes">(null);
-  const [lotes, setLotes] = useState<any[]>([]);
+  const [lotes, setLotes] = useState<Lote[]>([]);
   const [loading, setLoading] = useState(true);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [loteEditando, setLoteEditando] = useState<any>(null);
+  const [loteEditando, setLoteEditando] = useState<Lote | null>(null);
   const [dialogoEliminar, setDialogoEliminar] = useState(false);
-  const [loteAEliminar, setLoteAEliminar] = useState<any>(null);
+  const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
   const navigation = useNavigation();
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
-      const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Lote));
       const lotesFiltradosEstado = lotesData.filter(lote => lote.estado !== "Completado");
       lotesFiltradosEstado.sort((a, b) => {
         const dateA = new Date(a.fechaEntrada || 0);
@@ -43,10 +46,35 @@ export default function Dashboard() {
 
   const actualizarEstado = async (id: string, nuevoEstado: string) => {
     try {
+      // Encuentra el lote que se está actualizando
+      const lote = lotes.find((l) => l.id === id);
+      if (!lote) return;
+
+      // Actualiza el estado en Firestore
       await updateDoc(doc(db, "lotes", id), { estado: nuevoEstado });
+
+      // Actualiza el estado en la interfaz
       setLotes((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)));
+
+      //Si el lote pasa a "Completado", enviar notificación por WhatsApp
+      if (nuevoEstado === "Completado") {
+        console.log(`Enviando notificación al cliente del lote ${lote.referenciaLote}...`);
+        const notificado = await WhatsAppService.notifyLoteCompletado({
+          ...lote,
+          estado: nuevoEstado,
+        });
+
+        if (notificado) {
+          console.log("Mensaje de WhatsApp enviado correctamente");
+          setMensaje("Mensaje de WhatsApp enviado correctamente");
+        } else {
+          console.warn("No se pudo enviar el mensaje de WhatsApp");
+          setMensaje("No se pudo enviar el mensaje de WhatsApp");
+        }
+      }
     } catch (err) {
       console.error("Error actualizando estado:", err);
+      setMensaje("Error actualizando estado");
     }
   };
 
@@ -54,7 +82,7 @@ export default function Dashboard() {
     setVisibleForm(null);
   };
 
-  const iniciarEdicion = (lote: any) => {
+  const iniciarEdicion = (lote: Lote) => {
     setLoteEditando(lote);
   };
 
@@ -71,7 +99,7 @@ export default function Dashboard() {
     }
   };
 
-  const confirmarEliminacion = (lote: any) => {
+  const confirmarEliminacion = (lote: Lote) => {
     setLoteAEliminar(lote);
     setDialogoEliminar(true);
   };
@@ -206,7 +234,7 @@ export default function Dashboard() {
                     {lote.totalPrendas || 0}
                   </Text>
                   <Text style={[styles.tableCell, styles.colTotal]}>
-                    ${(lote.totalLote || 0).toLocaleString("es-CO")}
+                    ${(Number(lote.totalLote) || 0).toLocaleString("es-CO")}
                   </Text>
 
                   <View style={[styles.tableCell, styles.colEstado]}>
@@ -241,7 +269,7 @@ export default function Dashboard() {
 
                   <View style={[styles.tableCell, styles.colAcciones]}>
                     <View style={styles.accionesRow}>
-                      <TouchableOpacity onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}>
+                      <TouchableOpacity onPress={() => (navigation as any).navigate("LoteDetalles", { lote })}>
                         <Text style={styles.verButton}>Ver</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => iniciarEdicion(lote)}>
@@ -300,7 +328,7 @@ export default function Dashboard() {
                   <>
                     {/* FECHAS */}
                     <Text style={styles.modalSectionTitle}>Fechas</Text>
-                    
+
                     <Text style={styles.modalLabel}>Fecha de entrada</Text>
                     <TextInput
                       style={styles.modalInput}

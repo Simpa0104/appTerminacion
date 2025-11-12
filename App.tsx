@@ -1,4 +1,3 @@
-// App.tsx
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -27,7 +26,7 @@ const paperTheme = {
 
 function TabNavigator() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator id="TabNavigator" screenOptions={{ headerShown: false }}>
       <Tab.Screen name="DashBoard" component={DashBoard} />
       <Tab.Screen name="HistorialPrendas" component={HistorialPrendas} />
       <Tab.Screen name="HistorialLotes" component={HistorialLotes} />
@@ -40,7 +39,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider theme={paperTheme}>
         <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Navigator id="StackNavigator" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MainTabs" component={TabNavigator} />
             <Stack.Screen name="LoteDetalles" component={LoteDetalles} />
           </Stack.Navigator>

@@ -7,19 +7,20 @@ import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/historialLotes.styles";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
+import { Lote } from "../types/lote";
 
 export default function HistorialLotes() {
-    const [lotes, setLotes] = useState<any[]>([]);
+    const [lotes, setLotes] = useState<Lote[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [menuVisible, setMenuVisible] = useState<string | null>(null);
     const [dialogoEliminar, setDialogoEliminar] = useState(false);
-    const [loteAEliminar, setLoteAEliminar] = useState<any>(null);
+    const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
     const navigation = useNavigation();
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, "lotes"), (snapshot) => {
-            const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const lotesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Lote));
             // Filtrar solo los lotes COMPLETADOS
             const lotesCompletados = lotesData.filter(l => l.estado === "Completado");
             // Ordenar por fecha de salida (más reciente primero)
@@ -43,7 +44,7 @@ export default function HistorialLotes() {
         }
     };
 
-    const confirmarEliminacion = (lote: any) => {
+    const confirmarEliminacion = (lote: Lote) => {
         setLoteAEliminar(lote);
         setDialogoEliminar(true);
     };
@@ -74,7 +75,7 @@ export default function HistorialLotes() {
     });
 
     // Calcular solo ingresos totales
-    const totalIngresoHistorial = lotes.reduce((sum, l) => sum + (l.totalLote || 0), 0);
+    const totalIngresoHistorial = lotes.reduce((sum, l) => sum + (Number(l.totalLote) || 0), 0);
 
     return (
         <Layout title="Historial de Lotes" scrollable>
@@ -150,7 +151,7 @@ export default function HistorialLotes() {
                                         {lote.totalPrendas || 0}
                                     </Text>
                                     <Text style={[styles.tableCell, styles.colTotal]}>
-                                        ${(lote.totalLote || 0).toLocaleString("es-CO")}
+                                        ${(Number(lote.totalLote) || 0).toLocaleString("es-CO")}
                                     </Text>
 
                                     {/* Estado con dropdown */}
@@ -189,7 +190,7 @@ export default function HistorialLotes() {
                                     <View style={[styles.tableCell, styles.colAcciones]}>
                                         <View style={styles.accionesRow}>
                                             <TouchableOpacity
-                                                onPress={() => navigation.navigate("LoteDetalles" as never, { lote } as never)}
+                                                onPress={() => (navigation as any).navigate("LoteDetalles", { lote })}
                                             >
                                                 <Text style={styles.verButton}>Ver</Text>
                                             </TouchableOpacity>

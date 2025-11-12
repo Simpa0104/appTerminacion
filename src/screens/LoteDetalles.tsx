@@ -4,7 +4,7 @@ import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { Button, Card, Chip, Menu } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import styles from "../styles/loteDetalles.styles";
-import PDFService from "../services/pdfService";
+import PDFShiftService from "../services/pdfShiftService";
 
 export default function LoteDetalles() {
   const navigation = useNavigation();
@@ -52,9 +52,10 @@ export default function LoteDetalles() {
     setIsGenerating(true);
     setMenuVisible(false);
     try {
-      await PDFService.generateAndSharePDF(lote);
+      await PDFShiftService.generateAndSharePDF(lote);
     } catch (error) {
       console.error("Error generando PDF:", error);
+      alert("Error al generar el PDF");
     } finally {
       setIsGenerating(false);
     }
@@ -64,9 +65,10 @@ export default function LoteDetalles() {
     setIsGenerating(true);
     setMenuVisible(false);
     try {
-      await PDFService.printPDF(lote);
+      await PDFShiftService.printPDF(lote);
     } catch (error) {
       console.error("Error generando PDF:", error);
+      alert("Error al generar el PDF");
     } finally {
       setIsGenerating(false);
     }
@@ -286,7 +288,7 @@ export default function LoteDetalles() {
                 {isGenerating ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  "Generar PDF"
+                  "Generar Factura PDF"
                 )}
               </Button>
             }
@@ -294,10 +296,12 @@ export default function LoteDetalles() {
             <Menu.Item
               onPress={handleGeneratePDF}
               title="Generar y Compartir"
+              leadingIcon="share-variant"
             />
             <Menu.Item
               onPress={handleGenerateOnly}
-              title="Imprimir"
+              title="Solo Generar"
+              leadingIcon="file-pdf-box"
             />
           </Menu>
         </View>
