@@ -52,9 +52,8 @@ export default function Dashboard() {
       await updateDoc(doc(db, "lotes", id), { estado: nuevoEstado });
       setLotes((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)));
 
-      // Si el estado cambió a "Completado", enviar notificación
       if (nuevoEstado === "Completado" && loteActual) {
-        console.log("📤 Enviando notificación de WhatsApp...");
+        console.log("Enviando notificación de WhatsApp...");
         await WhatsAppService.notifyLoteCompletado(loteActual);
       }
     } catch (err) {
