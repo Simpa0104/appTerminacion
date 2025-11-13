@@ -69,9 +69,9 @@ export default class PDFShiftService {
   <div class="container">
     <div class="header">
       <div class="company-info">
-        <h1>Tu Empresa</h1>
-        <p>NIT: 123456789-0</p>
-        <p>Dirección: Calle 123 #45-67</p>
+        <h1>Mariela Terminacion</h1>
+        <p>Celular: 310 544 9314</p>
+        <p>Dirección: Cra 65a #70 sur 21</p>
       </div>
       <div class="invoice-info">
         <h2>FACTURA</h2>
@@ -102,9 +102,23 @@ export default class PDFShiftService {
         <thead><tr><th>Color</th><th>XS</th><th>S</th><th>M</th><th>L</th><th>XL</th><th>Total</th></tr></thead>
         <tbody>
           ${lote.cantidadesPorColor.map((c: any) => {
-            const total = (c.xs||0) + (c.s||0) + (c.m||0) + (c.l||0) + (c.xl||0);
-            return `<tr><td>${c.nombreColor}</td><td>${c.xs||0}</td><td>${c.s||0}</td><td>${c.m||0}</td><td>${c.l||0}</td><td>${c.xl||0}</td><td><strong>${total}</strong></td></tr>`;
-          }).join('')}
+      const xs = Number(c.xs) || 0;
+      const s = Number(c.s) || 0;
+      const m = Number(c.m) || 0;
+      const l = Number(c.l) || 0;
+      const xl = Number(c.xl) || 0;
+      const total = xs + s + m + l + xl;
+
+      return `<tr>
+              <td>${c.nombreColor}</td>
+              <td>${xs}</td>
+              <td>${s}</td>
+              <td>${m}</td>
+              <td>${l}</td>
+              <td>${xl}</td>
+              <td><strong>${total}</strong></td>
+            </tr>`;
+    }).join('')}
         </tbody>
       </table>
     ` : ''}
@@ -124,7 +138,7 @@ export default class PDFShiftService {
     </div>
 
     <div class="footer">
-      <p>Gracias por su preferencia</p>
+      <p>Gracias por su confianza</p>
       <p>${new Date().toLocaleString('es-CO')}</p>
     </div>
   </div>
@@ -163,7 +177,7 @@ export default class PDFShiftService {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         console.log('PDF descargado en navegador');
         return url; // Retornar la URL temporal
       } else {
@@ -189,7 +203,7 @@ export default class PDFShiftService {
       }
     } catch (error: any) {
       console.error('Error completo:', error);
-      
+
       if (error.response?.status === 401) {
         alert('API Key inválida. Verifica tu configuración en PDFShift.io');
       } else if (error.response?.status === 402) {
@@ -197,7 +211,7 @@ export default class PDFShiftService {
       } else {
         alert('Error generando PDF: ' + (error.message || 'Desconocido'));
       }
-      
+
       return null;
     }
   }

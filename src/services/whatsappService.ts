@@ -7,68 +7,12 @@ interface WhatsAppConfig {
     accessToken: string;
 }
 
-// Configura estas credenciales (idealmente desde variables de entorno)
 const WHATSAPP_CONFIG: WhatsAppConfig = {
-    phoneNumberId: "931432210045970", // Obtenerlo de Meta Business
-    accessToken: "EAAcMdQ357QYBP3z39S4JfeZAHj0gQ54ZAaeBUrNVQerOi3sARjZBH9EpmV0ZAFug3F8FFLX4TDoNOzQQ3hNg1CnKfSsQC2Cpj5tTZAaMLSbwl35l07AQYxmYPlZCzkn0ZBz93J1VR8a0vR59LT5jgfehUMb9ktVOTpWt4V2TtaJZCbVYrGzZCZCtlCT7EMlDODSvFyCvpCRDGD337jAeZBCELED3WW5YSthV7kyNCGVeQqKJ2Wa5oFDlmGMWqiu0GI2ZC7yLjono1D5zphtvhWxzrdUQ3iro", // Token de acceso permanente
+    phoneNumberId: "931432210045970",
+    accessToken: "EAAcMdQ357QYBP4u7ItecmCRZAfyl5yUm5yjrCPauz47Fw6miZBtpQtZCWdNtzPBihwCKEXZC1okxswhqcZAM9kKZAvqX6Tl9Fcj5hCrrOauhMeY9ySTKZA9GOuV0qsviP9JwB1HZBTn1e5ZBCV2L6VPxZCsF2ZBnO4ZCiknnchymSTYyDIl5GTZC5cZAXZCg5jadZBiG7XJwq7aWmpxfM8RUEetV7diXm8bj4jZCjq9LhNZARGec0W5k6V5awZD",
 };
 
 export default class WhatsAppService {
-    /**
-     * Envía un mensaje de WhatsApp usando la API de Meta
-     */
-    static async sendMessage(phoneNumber: string, lote: any): Promise<boolean> {
-        try {
-          const formattedPhone = this.formatPhoneNumber(phoneNumber);
-          const url = `https://graph.facebook.com/v22.0/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
-      
-          const response = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${WHATSAPP_CONFIG.accessToken}`,
-            },
-            body: JSON.stringify({
-              messaging_product: "whatsapp",
-              to: formattedPhone,
-              type: "template",
-              template: {
-                name: "lote_completado",
-                language: { code: "es_CO" },
-                components: [
-                  {
-                    type: "body",
-                    parameters: [
-                      { type: "text", text: lote.cliente },
-                      { type: "text", text: lote.referenciaLote || "Sin referencia" },
-                      { type: "text", text: lote.tipoPrenda || "N/A" },
-                      { type: "text", text: String(lote.totalPrendas || 0) },
-                      { type: "text", text: String(lote.totalLote || 0) },
-                    ],
-                  },
-                ],
-              },
-            }),
-          });
-      
-          const data = await response.json();
-      
-          if (!response.ok) {
-            console.error("Error enviando WhatsApp:", data);
-            return false;
-          }
-      
-          console.log("Mensaje enviado exitosamente:", data);
-          return true;
-        } catch (error) {
-          console.error("Error en sendMessage:", error);
-          return false;
-        }
-      }      
-
-    /**
-     * Formatea el número de teléfono al formato internacional
-     */
     static formatPhoneNumber(phone: string): string {
         let cleaned = phone.replace(/[\s\-\(\)]/g, "");
 
@@ -87,9 +31,6 @@ export default class WhatsAppService {
         return `57${cleaned}`;
     }
 
-    /**
-     * Obtiene el número de teléfono del cliente desde Firestore
-     */
     static async getClientPhone(clientName: string): Promise<string | null> {
         try {
             const clientesRef = collection(db, "clientes");
@@ -110,44 +51,163 @@ export default class WhatsAppService {
     }
 
     /**
-     * Envía notificación de lote completado al cliente
+     * Envía mensaje con plantilla hello_world (PARA PRUEBAS)
      */
-    static async notifyLoteCompletado(lote: any): Promise<boolean> {
+    static async sendMessageHelloWorld(phoneNumber: string): Promise<boolean> {
         try {
-            const clientPhone = await this.getClientPhone(lote.cliente);
+            const formattedPhone = this.formatPhoneNumber(phoneNumber);
+            const url = `https://graph.facebook.com/v22.0/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
 
-            if (!clientPhone) {
-                console.error("No se encontró el teléfono del cliente");
+            console.log('📱 Enviando WhatsApp (hello_world) a:', formattedPhone);
+
+            const payload = {
+                messaging_product: "whatsapp",
+                to: formattedPhone,
+                type: "template",
+                template: {
+                    name: "hello_world",
+                    language: { 
+                        code: "en_US"
+                    },
+                },
+            };
+
+            console.log('📤 Payload:', JSON.stringify(payload, null, 2));
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${WHATSAPP_CONFIG.accessToken}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("❌ Error enviando WhatsApp:", data);
+                alert(`❌ Error: ${data.error?.message || 'Error desconocido'}`);
                 return false;
             }
 
-            const message = this.generateCompletionMessage(lote);
-            return await this.sendMessage(clientPhone, message);
+            console.log("✅ ¡Mensaje enviado exitosamente!", data);
+            return true;
+
         } catch (error) {
-            console.error("Error en notifyLoteCompletado:", error);
+            console.error("❌ Error en sendMessage:", error);
+            alert("❌ Error de red al enviar mensaje");
             return false;
         }
     }
 
     /**
-     * Genera el mensaje de notificación
+     * Envía mensaje con tu plantilla personalizada lote_completado
      */
-    static generateCompletionMessage(lote: any): string {
-        return `
-🎉 *Lote Completado*
+    static async sendMessage(phoneNumber: string, lote: any): Promise<boolean> {
+        try {
+            const formattedPhone = this.formatPhoneNumber(phoneNumber);
+            const url = `https://graph.facebook.com/v22.0/${WHATSAPP_CONFIG.phoneNumberId}/messages`;
 
-Estimado cliente,
+            console.log('📱 Enviando WhatsApp a:', formattedPhone);
 
-Su lote ha sido completado exitosamente:
+            // Formatear el total sin símbolo de pesos (la plantilla ya lo tiene)
+            const totalFormateado = Number(lote.totalLote || 0).toLocaleString('es-CO');
 
-📦 *Referencia:* ${lote.referenciaLote || "Sin referencia"}
-👕 *Tipo de prenda:* ${lote.tipoPrenda || "N/A"}
-📊 *Cantidad:* ${lote.totalPrendas || 0} unidades
-💰 *Total:* $${(lote.totalLote || 0).toLocaleString("es-CO")}
+            const payload = {
+                messaging_product: "whatsapp",
+                to: formattedPhone,
+                type: "template",
+                template: {
+                    name: "lote_completado",
+                    language: { 
+                        code: "es_CO"
+                    },
+                    components: [
+                        {
+                            type: "body",
+                            parameters: [
+                                { type: "text", text: lote.cliente || "Cliente" },
+                                { type: "text", text: lote.referenciaLote || "Sin referencia" },
+                                { type: "text", text: lote.tipoPrenda || "N/A" },
+                                { type: "text", text: String(lote.totalPrendas || 0) },
+                                { type: "text", text: totalFormateado },
+                            ],
+                        },
+                    ],
+                },
+            };
 
-Por favor, pase a recoger su pedido.
+            console.log('📤 Payload enviado:', JSON.stringify(payload, null, 2));
 
-¡Gracias por confiar en nosotros!
-    `.trim();
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${WHATSAPP_CONFIG.accessToken}`,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("❌ Error enviando WhatsApp:", data);
+                
+                if (data.error?.code === 132001) {
+                    console.log('⚠️ Plantilla no aprobada, intentando con hello_world...');
+                    // Si falla, intentar con hello_world
+                    return await this.sendMessageHelloWorld(phoneNumber);
+                } else if (data.error?.code === 131030) {
+                    alert(`❌ El número ${formattedPhone} no está en la lista de números autorizados.`);
+                } else {
+                    alert(`❌ Error: ${data.error?.message || 'Error desconocido'}`);
+                }
+                
+                return false;
+            }
+
+            console.log("✅ ¡Mensaje enviado exitosamente!", data);
+            return true;
+
+        } catch (error) {
+            console.error("❌ Error en sendMessage:", error);
+            alert("❌ Error de red al enviar mensaje");
+            return false;
+        }
+    }
+
+    /**
+     * Envía notificación de lote completado al cliente
+     */
+    static async notifyLoteCompletado(lote: any): Promise<boolean> {
+        try {
+            console.log('📤 Enviando notificación de WhatsApp...');
+            console.log('🔍 Buscando teléfono del cliente:', lote.cliente);
+            
+            const clientPhone = await this.getClientPhone(lote.cliente);
+
+            if (!clientPhone) {
+                console.error("❌ No se encontró el teléfono del cliente");
+                alert(`❌ Cliente sin teléfono: ${lote.cliente}`);
+                return false;
+            }
+
+            console.log('📞 Teléfono encontrado:', clientPhone);
+
+            // Primero intenta con la plantilla personalizada
+            console.log('🔄 Intentando con plantilla lote_completado...');
+            const success = await this.sendMessage(clientPhone, lote);
+            
+            if (success) {
+                alert('✅ ¡Notificación de WhatsApp enviada correctamente! 🎉\n\n(Nota: Si recibiste "Hello World", tu plantilla personalizada aún no está aprobada)');
+            }
+
+            return success;
+        } catch (error) {
+            console.error("❌ Error en notifyLoteCompletado:", error);
+            alert("❌ Error al enviar notificación");
+            return false;
+        }
     }
 }

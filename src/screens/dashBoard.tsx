@@ -44,37 +44,21 @@ export default function Dashboard() {
     setVisibleForm(visibleForm === formName ? null : formName);
   };
 
+  // En dashBoard.tsx
   const actualizarEstado = async (id: string, nuevoEstado: string) => {
     try {
-      // Encuentra el lote que se está actualizando
-      const lote = lotes.find((l) => l.id === id);
-      if (!lote) return;
+      const loteActual = lotes.find((l) => l.id === id);
 
-      // Actualiza el estado en Firestore
       await updateDoc(doc(db, "lotes", id), { estado: nuevoEstado });
-
-      // Actualiza el estado en la interfaz
       setLotes((prev) => prev.map((l) => (l.id === id ? { ...l, estado: nuevoEstado } : l)));
 
-      //Si el lote pasa a "Completado", enviar notificación por WhatsApp
-      if (nuevoEstado === "Completado") {
-        console.log(`Enviando notificación al cliente del lote ${lote.referenciaLote}...`);
-        const notificado = await WhatsAppService.notifyLoteCompletado({
-          ...lote,
-          estado: nuevoEstado,
-        });
-
-        if (notificado) {
-          console.log("Mensaje de WhatsApp enviado correctamente");
-          setMensaje("Mensaje de WhatsApp enviado correctamente");
-        } else {
-          console.warn("No se pudo enviar el mensaje de WhatsApp");
-          setMensaje("No se pudo enviar el mensaje de WhatsApp");
-        }
+      // Si el estado cambió a "Completado", enviar notificación
+      if (nuevoEstado === "Completado" && loteActual) {
+        console.log("📤 Enviando notificación de WhatsApp...");
+        await WhatsAppService.notifyLoteCompletado(loteActual);
       }
     } catch (err) {
       console.error("Error actualizando estado:", err);
-      setMensaje("Error actualizando estado");
     }
   };
 
