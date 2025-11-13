@@ -2,7 +2,7 @@
   "expo": {
     "name": "proyectoFinal",
     "slug": "proyectoFinal",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.anonymous.proyectoFinal"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -25,13 +26,23 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.proyectoFinal"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_EXTERNAL_STORAGE"
+    ],
     "extra": {
       "eas": {
         "projectId": "2d1ae26a-62ca-4aa6-9045-084090957810"
       }
+    }
+  },
+  "web": {
+    "favicon": "./assets/favicon.png"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "2d1ae26a-62ca-4aa6-9045-084090957810"
     }
   }
 }

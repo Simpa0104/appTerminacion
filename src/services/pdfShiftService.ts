@@ -1,8 +1,8 @@
 // src/services/pdfShiftService.ts
 import axios from 'axios';
 import * as Sharing from 'expo-sharing';
-import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 
 interface PDFShiftConfig {
   apiKey: string;
@@ -17,7 +17,7 @@ const PDFSHIFT_CONFIG: PDFShiftConfig = {
 export default class PDFShiftService {
   static validateConfig(): boolean {
     if (!PDFSHIFT_CONFIG.apiKey || PDFSHIFT_CONFIG.apiKey === 'TU_API_KEY_AQUI') {
-      console.error('API Key de PDFShift no configurada');
+      console.error('⚠️ API Key de PDFShift no configurada');
       alert('Por favor configura tu API Key de PDFShift');
       return false;
     }
@@ -69,9 +69,9 @@ export default class PDFShiftService {
   <div class="container">
     <div class="header">
       <div class="company-info">
-        <h1>Mariela Terminacion</h1>
-        <p>Celular: 310 544 9314</p>
-        <p>Dirección: Cra 65a #70 sur 21</p>
+        <h1>Tu Empresa</h1>
+        <p>NIT: 123456789-0</p>
+        <p>Dirección: Calle 123 #45-67</p>
       </div>
       <div class="invoice-info">
         <h2>FACTURA</h2>
@@ -108,16 +108,7 @@ export default class PDFShiftService {
       const l = Number(c.l) || 0;
       const xl = Number(c.xl) || 0;
       const total = xs + s + m + l + xl;
-
-      return `<tr>
-              <td>${c.nombreColor}</td>
-              <td>${xs}</td>
-              <td>${s}</td>
-              <td>${m}</td>
-              <td>${l}</td>
-              <td>${xl}</td>
-              <td><strong>${total}</strong></td>
-            </tr>`;
+      return `<tr><td>${c.nombreColor}</td><td>${xs}</td><td>${s}</td><td>${m}</td><td>${l}</td><td>${xl}</td><td><strong>${total}</strong></td></tr>`;
     }).join('')}
         </tbody>
       </table>
@@ -138,7 +129,7 @@ export default class PDFShiftService {
     </div>
 
     <div class="footer">
-      <p>Gracias por su confianza</p>
+      <p>Gracias por su preferencia</p>
       <p>${new Date().toLocaleString('es-CO')}</p>
     </div>
   </div>
@@ -151,7 +142,7 @@ export default class PDFShiftService {
 
     try {
       const html = this.generateInvoiceHTML(lote);
-      console.log('Generando PDF...');
+      console.log('🔄 Generando PDF...');
 
       const response = await axios.post(
         PDFSHIFT_CONFIG.endpoint,
@@ -163,7 +154,7 @@ export default class PDFShiftService {
         }
       );
 
-      console.log('PDF recibido de PDFShift');
+      console.log('✅ PDF recibido');
 
       // Verificar si estamos en web o móvil
       if (Platform.OS === 'web') {
@@ -178,14 +169,15 @@ export default class PDFShiftService {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        console.log('PDF descargado en navegador');
-        return url; // Retornar la URL temporal
+        console.log('✅ PDF descargado en navegador');
+        return url;
       } else {
-        // En MÓVIL: Guardar en el sistema de archivos
+        // En MÓVIL: Guardar en documentDirectory (más accesible que cache)
         const fileName = `Factura_${lote.referenciaLote}_${Date.now()}.pdf`;
-        const fileUri = (FileSystem.cacheDirectory || FileSystem.documentDirectory) + fileName;
+        // Usar documentDirectory en lugar de cacheDirectory
+        const fileUri = FileSystem.documentDirectory + fileName;
 
-        // Convertir ArrayBuffer a base64
+        // Convertir a base64
         const uint8Array = new Uint8Array(response.data);
         let binaryString = '';
         for (let i = 0; i < uint8Array.length; i++) {
@@ -193,25 +185,16 @@ export default class PDFShiftService {
         }
         const base64 = btoa(binaryString);
 
-        // Escribir el archivo
         await FileSystem.writeAsStringAsync(fileUri, base64, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: 'base64' as any,
         });
 
-        console.log('PDF guardado:', fileUri);
+        console.log('✅ Guardado:', fileUri);
         return fileUri;
       }
     } catch (error: any) {
-      console.error('Error completo:', error);
-
-      if (error.response?.status === 401) {
-        alert('API Key inválida. Verifica tu configuración en PDFShift.io');
-      } else if (error.response?.status === 402) {
-        alert('Límite de uso excedido en PDFShift. Actualiza tu plan.');
-      } else {
-        alert('Error generando PDF: ' + (error.message || 'Desconocido'));
-      }
-
+      console.error('❌ Error:', error);
+      alert('Error generando PDF: ' + (error.message || 'Desconocido'));
       return null;
     }
   }
@@ -222,23 +205,24 @@ export default class PDFShiftService {
 
     // En web, ya se descargó automáticamente
     if (Platform.OS === 'web') {
-      alert('PDF descargado exitosamente');
+      alert('✅ PDF descargado exitosamente');
       return;
     }
 
-    // En móvil, compartir
+    // En móvil, compartir usando el sistema nativo
     try {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
           mimeType: 'application/pdf',
           dialogTitle: `Factura ${lote.referenciaLote}`,
+          UTI: 'com.adobe.pdf', // Para iOS
         });
       } else {
-        alert('Compartir no disponible en este dispositivo');
+        alert('✅ PDF generado\n\nPuedes encontrarlo en la carpeta de documentos de la app');
       }
     } catch (error) {
-      console.error('Error compartiendo:', error);
-      alert('Error al compartir PDF');
+      console.error('❌ Error compartiendo:', error);
+      alert('PDF generado pero error al compartir');
     }
   }
 
@@ -246,9 +230,23 @@ export default class PDFShiftService {
     const fileUri = await this.generatePDF(lote);
     if (fileUri) {
       if (Platform.OS === 'web') {
-        alert('PDF descargado exitosamente en tu navegador');
+        alert('✅ PDF descargado en tu navegador');
       } else {
-        alert(`PDF generado exitosamente\n\nGuardado en: ${fileUri}`);
+        // En móvil, al hacer clic en "Solo Generar", compártelo igual
+        // para que el usuario pueda guardarlo donde quiera
+        try {
+          if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(fileUri, {
+              mimeType: 'application/pdf',
+              dialogTitle: `Factura ${lote.referenciaLote}`,
+              UTI: 'com.adobe.pdf',
+            });
+          } else {
+            alert(`✅ PDF generado\n\nArchivo: Factura_${lote.referenciaLote}`);
+          }
+        } catch (error) {
+          alert(`✅ PDF generado en la carpeta de documentos`);
+        }
       }
     }
   }
