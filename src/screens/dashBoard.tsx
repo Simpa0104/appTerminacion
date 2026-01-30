@@ -1,3 +1,4 @@
+// src/screens/dashBoard.tsx
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, Text, TextInput, TouchableOpacity, Modal } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,7 +58,7 @@ export default function Dashboard() {
         await WhatsAppService.notifyLoteCompletado(loteActual);
       }
     } catch (err) {
-      console.error("Error actualizando estado:", err);
+      // console.error("Error actualizando estado:", err);
     }
   };
 

@@ -1,7 +1,7 @@
-//layout.styles.ts
+// styles/layout.styles.ts
 import { StyleSheet } from "react-native";
-import { theme } from "../styles/theme";
-import { baseStyles } from "../styles/baseStyles";
+import { theme } from "./theme";
+import { baseStyles } from "./baseStyles";
 
 export default StyleSheet.create({
     container: baseStyles.container,

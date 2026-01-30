@@ -2,10 +2,6 @@
 import { StyleSheet } from "react-native";
 import { theme } from "./theme";
 
-/**
- * Estilos base reutilizables para toda la aplicación
- * Importa estos estilos en lugar de duplicar código
- */
 export const baseStyles = StyleSheet.create({
   // ==================== CONTENEDORES ====================
   container: {

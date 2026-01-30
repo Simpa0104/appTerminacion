@@ -1,3 +1,4 @@
+// src/screens/histtorialPrendas.tsx
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, Text, TextInput, Modal, TouchableOpacity, Switch } from "react-native";
 import { Card, Button, Portal, Dialog } from "react-native-paper";
@@ -35,10 +36,12 @@ export default function HistorialPrendas() {
 
     let total = 0;
 
+    // Abotonar
     if (prendaEditando.precioAbotonar && prendaEditando.cantidadBotones) {
       total += parseFloat(prendaEditando.precioAbotonar) * parseInt(prendaEditando.cantidadBotones);
     }
 
+    // Procesos predeterminados
     [
       { key: "pulir", precio: "precioPulir" },
       { key: "planchar", precio: "precioPlanchar" },
@@ -51,6 +54,13 @@ export default function HistorialPrendas() {
         total += parseFloat(prendaEditando[item.precio]) || 0;
       }
     });
+
+    // Procesos personalizados
+    if (prendaEditando.procesosPersonalizados && Array.isArray(prendaEditando.procesosPersonalizados)) {
+      prendaEditando.procesosPersonalizados.forEach((proceso: any) => {
+        total += parseFloat(proceso.precio) || 0;
+      });
+    }
 
     setPrecioTotalEdicion(total);
   }, [prendaEditando]);
@@ -66,6 +76,7 @@ export default function HistorialPrendas() {
       precioPlaca: String(prenda.precioPlaca || ""),
       precioDoblar: String(prenda.precioDoblar || ""),
       precioEmpacar: String(prenda.precioEmpacar || ""),
+      procesosPersonalizados: prenda.procesosPersonalizados || [],
     });
   };
 
@@ -74,6 +85,12 @@ export default function HistorialPrendas() {
 
     try {
       const { id, ...datos } = prendaEditando;
+
+      // Filtrar procesos personalizados válidos
+      const procesosValidos = prendaEditando.procesosPersonalizados.filter(
+        (p: any) => p.nombre.trim() !== "" && p.precio !== ""
+      );
+
       const datosActualizados = {
         ...datos,
         precioAbotonar: parseFloat(prendaEditando.precioAbotonar) || 0,
@@ -84,6 +101,7 @@ export default function HistorialPrendas() {
         precioDoblar: parseFloat(prendaEditando.precioDoblar) || 0,
         precioEmpacar: parseFloat(prendaEditando.precioEmpacar) || 0,
         cantidadBotones: parseInt(prendaEditando.cantidadBotones) || 0,
+        procesosPersonalizados: procesosValidos,
         precioTotal: precioTotalEdicion,
       };
 
@@ -109,6 +127,49 @@ export default function HistorialPrendas() {
     } catch (error) {
       console.error("Error eliminando prenda:", error);
     }
+  };
+
+  // Funciones para manejar procesos personalizados en edición
+  const agregarProcesoEnEdicion = () => {
+    if (!prendaEditando) return;
+
+    const nuevosProcesos = [
+      ...prendaEditando.procesosPersonalizados,
+      { nombre: "", precio: "" }
+    ];
+
+    setPrendaEditando({
+      ...prendaEditando,
+      procesosPersonalizados: nuevosProcesos
+    });
+  };
+
+  const eliminarProcesoEnEdicion = (index: number) => {
+    if (!prendaEditando) return;
+
+    const nuevosProcesos = prendaEditando.procesosPersonalizados.filter(
+      (_: any, i: number) => i !== index
+    );
+
+    setPrendaEditando({
+      ...prendaEditando,
+      procesosPersonalizados: nuevosProcesos
+    });
+  };
+
+  const actualizarProcesoEnEdicion = (index: number, campo: "nombre" | "precio", valor: string) => {
+    if (!prendaEditando) return;
+
+    const nuevosProcesos = [...prendaEditando.procesosPersonalizados];
+    nuevosProcesos[index] = {
+      ...nuevosProcesos[index],
+      [campo]: campo === "precio" ? (parseFloat(valor) || 0) : valor
+    };
+
+    setPrendaEditando({
+      ...prendaEditando,
+      procesosPersonalizados: nuevosProcesos
+    });
   };
 
   return (
@@ -188,16 +249,29 @@ export default function HistorialPrendas() {
                   <Text style={[styles.tableCell, styles.colMarca]}>{prenda.marca}</Text>
                   <Text style={[styles.tableCell, styles.colRef]}>{prenda.referencia}</Text>
                   <Text style={[styles.tableCell, styles.colBotones]}>{prenda.cantidadBotones || 0}</Text>
+
+                  {/* PROCESOS - INCLUYE PERSONALIZADOS */}
                   <View style={[styles.tableCell, styles.colProcesos]}>
                     <View style={styles.procesosContainer}>
+                      {/* Procesos predeterminados */}
                       {prenda.pulir && <Text style={styles.procesoChip}>Pulir</Text>}
                       {prenda.planchar && <Text style={styles.procesoChip}>Planchar</Text>}
                       {prenda.etiquetar && <Text style={styles.procesoChip}>Etiquetar</Text>}
                       {prenda.placa && <Text style={styles.procesoChip}>Placa</Text>}
                       {prenda.doblar && <Text style={styles.procesoChip}>Doblar</Text>}
                       {prenda.empacar && <Text style={styles.procesoChip}>Empacar</Text>}
+
+                      {/* Procesos personalizados */}
+                      {prenda.procesosPersonalizados && prenda.procesosPersonalizados.length > 0 &&
+                        prenda.procesosPersonalizados.map((proceso: any, idx: number) => (
+                          <Text key={idx} style={[styles.procesoChip, styles.procesoCustom]}>
+                            {proceso.nombre}
+                          </Text>
+                        ))
+                      }
                     </View>
                   </View>
+
                   <Text style={[styles.tableCell, styles.colTotal, styles.totalText]}>
                     ${(prenda.precioTotal || 0).toLocaleString("es-CO")}
                   </Text>
@@ -439,6 +513,60 @@ export default function HistorialPrendas() {
                         }
                       />
                     )}
+
+                    {/* PROCESOS PERSONALIZADOS - CON EDICIÓN COMPLETA */}
+                    <Text style={styles.modalSectionTitle}>Procesos Personalizados</Text>
+
+                    {prendaEditando.procesosPersonalizados &&
+                      prendaEditando.procesosPersonalizados.length > 0 && (
+                        <>
+                          {prendaEditando.procesosPersonalizados.map((proceso: any, index: number) => (
+                            <View key={index} style={styles.customProcessCard}>
+                              <View style={styles.customProcessHeader}>
+                                <Text style={styles.customProcessTitle}>
+                                  Proceso {index + 1}
+                                </Text>
+                                <TouchableOpacity
+                                  onPress={() => eliminarProcesoEnEdicion(index)}
+                                  style={styles.deleteButton}
+                                >
+                                  <Text style={styles.deleteButtonText}>Eliminar</Text>
+                                </TouchableOpacity>
+                              </View>
+
+                              <Text style={styles.label}>Nombre del proceso</Text>
+                              <TextInput
+                                style={styles.input}
+                                placeholder="Ej: Bordado, Estampado..."
+                                value={proceso.nombre}
+                                onChangeText={(text) =>
+                                  actualizarProcesoEnEdicion(index, "nombre", text)
+                                }
+                              />
+
+                              <Text style={styles.label}>Precio del proceso</Text>
+                              <TextInput
+                                style={styles.input}
+                                placeholder="0"
+                                keyboardType="numeric"
+                                value={String(proceso.precio)}
+                                onChangeText={(text) =>
+                                  actualizarProcesoEnEdicion(index, "precio", text)
+                                }
+                              />
+                            </View>
+                          ))}
+                        </>
+                      )}
+
+                    <Button
+                      mode="outlined"
+                      onPress={agregarProcesoEnEdicion}
+                      style={styles.addProcessButton}
+                      icon="plus"
+                    >
+                      Agregar Proceso Personalizado
+                    </Button>
 
                     {/* TOTAL */}
                     <View style={styles.totalContainerModal}>

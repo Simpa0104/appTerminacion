@@ -1,9 +1,10 @@
-// screens/historialPrendas.styles.ts
+// styles/historialPrendas.styles.ts
 import { StyleSheet } from "react-native";
-import { theme } from "../styles/theme";
-import { baseStyles } from "../styles/baseStyles";
+import { theme } from "./theme";
+import { baseStyles } from "./baseStyles";
 
 export default StyleSheet.create({
+  // Reutilizar estilos base directamente
   container: baseStyles.container,
   searchBar: baseStyles.searchBar,
   statsRow: baseStyles.statsRow,
@@ -36,6 +37,7 @@ export default StyleSheet.create({
   input: baseStyles.input,
   switchRow: baseStyles.switchRow,
 
+  // Estilos específicos de esta pantalla
   headerRow: {
     ...baseStyles.headerRow,
   },
@@ -45,6 +47,7 @@ export default StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
   },
 
+  // Columnas específicas de esta tabla
   colTipo: {
     width: theme.tableColumns.medium,
   },
@@ -74,6 +77,7 @@ export default StyleSheet.create({
     width: theme.tableColumns.small,
   },
 
+  // Chips de procesos
   procesosContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -86,6 +90,12 @@ export default StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.xl,
     fontSize: theme.fontSize.sm,
+  },
+
+  // Chip para procesos personalizados (azul más claro)
+  procesoCustom: {
+    backgroundColor: "#F0F9FF",
+    color: "#1E40AF",
   },
 
   totalText: {
@@ -108,6 +118,65 @@ export default StyleSheet.create({
     fontSize: theme.fontSize.xl,
     color: theme.colors.primary,
     fontWeight: theme.fontWeight.semibold,
+  },
+
+  // Procesos personalizados en el modal de edición
+  customProcessCard: {
+    backgroundColor: "#F0F9FF",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    marginBottom: 16,
+  },
+
+  customProcessHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  customProcessTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: theme.colors.primary,
+  },
+
+  deleteButton: {
+    backgroundColor: theme.colors.error,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+
+  deleteButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+
+  addProcessButton: {
+    marginTop: 8,
+    marginBottom: 16,
+    borderColor: theme.colors.primary,
+    borderWidth: 2,
+  },
+
+  customProcessBlock: {
+    marginBottom: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: "#F0F9FF",
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: theme.borderWidth.thin,
+    borderColor: "#BFDBFE",
+  },
+
+  customProcessLabel: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.xs,
   },
 
   totalContainerModal: {

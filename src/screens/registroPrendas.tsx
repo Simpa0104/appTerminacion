@@ -1,3 +1,4 @@
+// src/screens/registroPrendas.tsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { Snackbar } from "react-native-paper";
+import { Snackbar, Button } from "react-native-paper";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import styles from "../styles/registroPrendas.styles";
@@ -26,10 +27,43 @@ interface RegistroPrendasProps {
   onSuccess?: () => void;
 }
 
+interface ProcesoPersonalizado {
+  id: string;
+  nombre: string;
+  precio: string;
+}
+
 export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
   const [visible, setVisible] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [precioTotal, setPrecioTotal] = useState(0);
+  const [procesosPersonalizados, setProcesosPersonalizados] = useState<ProcesoPersonalizado[]>([]);
+
+  const agregarProcesoPersonalizado = () => {
+    const nuevoId = `custom_${Date.now()}`;
+    setProcesosPersonalizados([
+      ...procesosPersonalizados,
+      { id: nuevoId, nombre: "", precio: "" },
+    ]);
+  };
+
+  const eliminarProcesoPersonalizado = (id: string) => {
+    setProcesosPersonalizados(
+      procesosPersonalizados.filter((proceso) => proceso.id !== id)
+    );
+  };
+
+  const actualizarProcesoPersonalizado = (
+    id: string,
+    campo: "nombre" | "precio",
+    valor: string
+  ) => {
+    setProcesosPersonalizados(
+      procesosPersonalizados.map((proceso) =>
+        proceso.id === id ? { ...proceso, [campo]: valor } : proceso
+      )
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -60,6 +94,14 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
           validationSchema={validationSchema}
           onSubmit={async (values, { resetForm }) => {
             try {
+              // Preparar procesos personalizados para guardar
+              const procesosPersonalizadosValidos = procesosPersonalizados
+                .filter((p) => p.nombre.trim() !== "" && p.precio.trim() !== "")
+                .map((p) => ({
+                  nombre: p.nombre,
+                  precio: parseFloat(p.precio) || 0,
+                }));
+
               const parsedValues = {
                 ...values,
                 precioAbotonar: parseFloat(values.precioAbotonar) || 0,
@@ -70,16 +112,18 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                 precioDoblar: parseFloat(values.precioDoblar) || 0,
                 precioEmpacar: parseFloat(values.precioEmpacar) || 0,
                 cantidadBotones: parseInt(values.cantidadBotones) || 0,
+                procesosPersonalizados: procesosPersonalizadosValidos,
                 precioTotal,
               };
 
               await addDoc(collection(db, "prendas"), parsedValues);
-              setMensaje("✅ Prenda guardada correctamente");
+              setMensaje("Prenda guardada correctamente");
               resetForm();
               setPrecioTotal(0);
+              setProcesosPersonalizados([]);
             } catch (error) {
               console.error("Error guardando la prenda:", error);
-              setMensaje("❌ Error al guardar la prenda");
+              setMensaje("Error al guardar la prenda");
             } finally {
               setVisible(true);
               setTimeout(() => {
@@ -100,11 +144,15 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
             // Recalcular total
             useEffect(() => {
               let total = 0;
+
+              // Abotonar
               if (values.precioAbotonar && values.cantidadBotones) {
                 total +=
                   parseFloat(values.precioAbotonar) *
                   parseInt(values.cantidadBotones);
               }
+
+              // Procesos predeterminados
               [
                 { key: "pulir", precio: "precioPulir" },
                 { key: "planchar", precio: "precioPlanchar" },
@@ -120,8 +168,16 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                     ) || 0;
                 }
               });
+
+              // Procesos personalizados
+              procesosPersonalizados.forEach((proceso) => {
+                if (proceso.precio) {
+                  total += parseFloat(proceso.precio) || 0;
+                }
+              });
+
               setPrecioTotal(total);
-            }, [values]);
+            }, [values, procesosPersonalizados]);
 
             return (
               <View>
@@ -164,8 +220,8 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                   <Text style={styles.error}>{errors.referencia}</Text>
                 )}
 
-                {/* PROCESOS */}
-                <Text style={styles.sectionTitle}>Procesos y Costos</Text>
+                {/* PROCESOS PREDETERMINADOS */}
+                <Text style={styles.sectionTitle}>Procesos Predeterminados</Text>
 
                 {/* ABOTONAR */}
                 <View style={styles.card}>
@@ -216,6 +272,55 @@ export default function RegistroPrendas({ onSuccess }: RegistroPrendasProps) {
                     )}
                   </View>
                 ))}
+
+                {/* PROCESOS PERSONALIZADOS */}
+                <Text style={styles.sectionTitle}>Procesos Personalizados</Text>
+
+                {procesosPersonalizados.map((proceso, index) => (
+                  <View key={proceso.id} style={styles.customProcessCard}>
+                    <View style={styles.customProcessHeader}>
+                      <Text style={styles.customProcessTitle}>
+                        Proceso {index + 1}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => eliminarProcesoPersonalizado(proceso.id)}
+                        style={styles.deleteButton}
+                      >
+                        <Text style={styles.deleteButtonText}>Eliminar</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <Text style={styles.label}>Nombre del proceso</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Ej: Bordado, Estampado..."
+                      value={proceso.nombre}
+                      onChangeText={(text) =>
+                        actualizarProcesoPersonalizado(proceso.id, "nombre", text)
+                      }
+                    />
+
+                    <Text style={styles.label}>Precio del proceso</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="0"
+                      keyboardType="numeric"
+                      value={proceso.precio}
+                      onChangeText={(text) =>
+                        actualizarProcesoPersonalizado(proceso.id, "precio", text)
+                      }
+                    />
+                  </View>
+                ))}
+
+                <Button
+                  mode="outlined"
+                  onPress={agregarProcesoPersonalizado}
+                  style={styles.addProcessButton}
+                  icon="plus"
+                >
+                  Agregar Proceso Personalizado
+                </Button>
 
                 {/* TOTAL */}
                 <View style={styles.totalContainer}>

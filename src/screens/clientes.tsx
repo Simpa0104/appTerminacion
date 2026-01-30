@@ -1,3 +1,4 @@
+// src/screens/clientes.tsx
 import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView } from "react-native";
 import { Button } from "react-native-paper";

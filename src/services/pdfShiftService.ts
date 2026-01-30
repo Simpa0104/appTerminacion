@@ -69,9 +69,8 @@ export default class PDFShiftService {
   <div class="container">
     <div class="header">
       <div class="company-info">
-        <h1>Tu Empresa</h1>
-        <p>NIT: 123456789-0</p>
-        <p>Dirección: Calle 123 #45-67</p>
+        <h1>Mary Terminacion</h1>
+        <p>Celular: 3105449314</p>
       </div>
       <div class="invoice-info">
         <h2>FACTURA</h2>
