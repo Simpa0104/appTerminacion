@@ -16,7 +16,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import styles from "../styles/registroLotes.styles";
+import styles from "../styles/registroLotes.styles.responsive";
 import useFetchCollection from "../hooks/useFetchCollection";
 import DateTimePicker from "@react-native-community/datetimepicker";
 

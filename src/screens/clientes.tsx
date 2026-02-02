@@ -7,7 +7,7 @@ import * as Yup from "yup";
 import { Snackbar } from "react-native-paper";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import styles from "../styles/clientes.styles";
+import styles from "../styles/clientes.styles.responsive";
 import { KeyboardAvoidingView, Platform } from "react-native";
 
 

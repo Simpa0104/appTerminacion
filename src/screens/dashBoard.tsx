@@ -8,7 +8,7 @@ import { db } from "../firebase/firebaseConfig";
 import RegistroLotes from "./registroLotes";
 import RegistroPrendas from "./registroPrendas";
 import Clientes from "./clientes";
-import styles from "../styles/dashBoard.styles";
+import styles from "../styles/dashboard.styles.responsive";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
 import { Lote } from "../types/lote";

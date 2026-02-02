@@ -6,7 +6,7 @@ import { collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
 import useFetchCollection from "../hooks/useFetchCollection";
 import RegistroPrendas from "./registroPrendas";
-import styles from "../styles/historialPrendas.styles";
+import styles from "../styles/historialPrendas.styles.responsive";
 import Layout from "../components/layout";
 
 export default function HistorialPrendas() {

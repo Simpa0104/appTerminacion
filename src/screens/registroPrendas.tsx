@@ -15,7 +15,7 @@ import * as Yup from "yup";
 import { Snackbar, Button } from "react-native-paper";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import styles from "../styles/registroPrendas.styles";
+import styles from "../styles/registroPrendas.styles.responsive";
 
 const validationSchema = Yup.object().shape({
   tipoPrenda: Yup.string().required("Campo requerido"),

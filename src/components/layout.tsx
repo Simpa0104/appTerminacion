@@ -1,6 +1,6 @@
 import React from "react";
 import { SafeAreaView, View, Text } from "react-native";
-import styles from "../styles/layout.styles";
+import styles from "../styles/layout.styles.responsive";
 import { ScrollView } from "react-native-gesture-handler";
 import { ScreenContentWrapper } from "react-native-screens";
 

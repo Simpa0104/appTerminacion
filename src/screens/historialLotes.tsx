@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Menu, Portal, Dialog } from "react-native-paper";
 import { collection, onSnapshot, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
-import styles from "../styles/historialLotes.styles";
+import styles from "../styles/historialLotes.styles.responsive";
 import Layout from "../components/layout";
 import { useNavigation } from "@react-navigation/native";
 import { Lote } from "../types/lote";

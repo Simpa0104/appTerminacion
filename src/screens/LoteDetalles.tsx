@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { Button, Card, Chip, Menu } from "react-native-paper";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import styles from "../styles/loteDetalles.styles";
+import styles from "../styles/loteDetalles.styles.responsive";
 import PDFShiftService from "../services/pdfShiftService";
 
 export default function LoteDetalles() {
