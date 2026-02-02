@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "proyectoFinal",
-    "slug": "proyectoFinal",
+    "name": "Mary Terminación",
+    "slug": "mary-terminacion",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
@@ -17,9 +17,10 @@
       "bundleIdentifier": "com.anonymous.proyectoFinal"
     },
     "android": {
-      "versionCode": 2,
+      "label": "Mary Terminación",
+      "versionCode": 3,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -38,7 +39,7 @@
     }
   },
   "web": {
-    "favicon": "./assets/favicon.png"
+    "favicon": "./assets/Logo.png"
   },
   "extra": {
     "eas": {
